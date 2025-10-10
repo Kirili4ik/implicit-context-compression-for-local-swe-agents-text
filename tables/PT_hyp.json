@@ -1,0 +1,664 @@
+{
+    "bf16": {
+      "value": true
+    },
+    "fp16": {
+      "value": false
+    },
+    "fsdp": {
+      "value": []
+    },
+    "seed": {
+      "value": 42
+    },
+    "tf32": {
+      "value": null
+    },
+    "debug": {
+      "value": []
+    },
+    "optim": {
+      "value": "adamw_torch"
+    },
+    "train": {
+      "value": true
+    },
+    "_n_gpu": {
+      "value": 1
+    },
+    "_wandb": {
+      "value": {
+        "m": [
+          {
+            "1": "eval/samples_per_second",
+            "5": 2,
+            "6": [
+              1,
+              3
+            ],
+            "7": []
+          },
+          {
+            "1": "train/global_step",
+            "6": [
+              3
+            ],
+            "7": []
+          },
+          {
+            "1": "eval/loss",
+            "5": 2,
+            "6": [
+              1,
+              3
+            ],
+            "7": []
+          },
+          {
+            "1": "train/lm_loss",
+            "5": 2,
+            "6": [
+              1,
+              3
+            ],
+            "7": []
+          },
+          {
+            "1": "train/grad_norm",
+            "5": 2,
+            "6": [
+              1,
+              3
+            ],
+            "7": []
+          },
+          {
+            "1": "train/learning_rate",
+            "5": 2,
+            "6": [
+              1,
+              3
+            ],
+            "7": []
+          },
+          {
+            "1": "train/epoch",
+            "5": 2,
+            "6": [
+              1,
+              3
+            ],
+            "7": []
+          },
+          {
+            "1": "eval/runtime",
+            "5": 2,
+            "6": [
+              1,
+              3
+            ],
+            "7": []
+          },
+          {
+            "1": "eval/steps_per_second",
+            "5": 2,
+            "6": [
+              1,
+              3
+            ],
+            "7": []
+          },
+          {
+            "1": "eval/avg_bleu",
+            "5": 2,
+            "6": [
+              1,
+              3
+            ],
+            "7": []
+          },
+          {
+            "1": "train/trained_tokens",
+            "5": 2,
+            "6": [
+              1,
+              3
+            ],
+            "7": []
+          },
+          {
+            "1": "train/ae_loss",
+            "5": 2,
+            "6": [
+              1,
+              3
+            ],
+            "7": []
+          },
+          {
+            "1": "train/loss",
+            "5": 2,
+            "6": [
+              1,
+              3
+            ],
+            "7": []
+          }
+        ],
+        "t": {
+          "1": [
+            1,
+            5,
+            11,
+            41,
+            49,
+            51,
+            53,
+            55,
+            71,
+            98,
+            105
+          ],
+          "2": [
+            1,
+            5,
+            11,
+            41,
+            49,
+            51,
+            53,
+            55,
+            71,
+            98,
+            105
+          ],
+          "3": [
+            7,
+            13,
+            16,
+            23,
+            55,
+            66
+          ],
+          "4": "3.10.16",
+          "5": "0.19.11",
+          "6": "4.51.3",
+          "8": [
+            5
+          ],
+          "9": {
+            "1": "transformers_trainer"
+          },
+          "12": "0.19.11",
+          "13": "linux-x86_64"
+        },
+        "cli_version": "0.19.11",
+        "python_version": "3.10.16"
+      }
+    },
+    "lora_r": {
+      "value": 128
+    },
+    "do_eval": {
+      "value": true
+    },
+    "min_len": {
+      "value": 512
+    },
+    "no_cuda": {
+      "value": false
+    },
+    "tp_size": {
+      "value": 0
+    },
+    "use_cpu": {
+      "value": false
+    },
+    "do_train": {
+      "value": true
+    },
+    "lm_ratio": {
+      "value": 0.5
+    },
+    "run_name": {
+      "value": "icae/data/checkpoints/pretrain_1207"
+    },
+    "use_ipex": {
+      "value": false
+    },
+    "adafactor": {
+      "value": false
+    },
+    "data_seed": {
+      "value": null
+    },
+    "deepspeed": {
+      "value": null
+    },
+    "eval_size": {
+      "value": 500
+    },
+    "hub_token": {
+      "value": "<HUB_TOKEN>"
+    },
+    "log_level": {
+      "value": "passive"
+    },
+    "max_steps": {
+      "value": 100000
+    },
+    "ray_scope": {
+      "value": "last"
+    },
+    "report_to": {
+      "value": [
+        "wandb"
+      ]
+    },
+    "token_num": {
+      "value": 1000000000
+    },
+    "adam_beta1": {
+      "value": 0.9
+    },
+    "adam_beta2": {
+      "value": 0.999
+    },
+    "do_predict": {
+      "value": false
+    },
+    "eval_delay": {
+      "value": 0
+    },
+    "eval_steps": {
+      "value": 500
+    },
+    "local_rank": {
+      "value": 0
+    },
+    "model_type": {
+      "value": "icae"
+    },
+    "optim_args": {
+      "value": null
+    },
+    "output_dir": {
+      "value": "icae/data/checkpoints/pretrain_1207"
+    },
+    "past_index": {
+      "value": -1
+    },
+    "save_steps": {
+      "value": 3000
+    },
+    "ddp_backend": {
+      "value": null
+    },
+    "ddp_timeout": {
+      "value": 1800
+    },
+    "fsdp_config": {
+      "value": {
+        "xla": false,
+        "xla_fsdp_v2": false,
+        "min_num_params": 0,
+        "xla_fsdp_grad_ckpt": false
+      }
+    },
+    "label_names": {
+      "value": null
+    },
+    "logging_dir": {
+      "value": "icae/data/checkpoints/pretrain_1207/runs/Jul12_18-00-28_h200b"
+    },
+    "push_to_hub": {
+      "value": false
+    },
+    "torchdynamo": {
+      "value": null
+    },
+    "adam_epsilon": {
+      "value": 1e-8
+    },
+    "dataset_repo": {
+      "value": "DKYoon/SlimPajama-6B"
+    },
+    "disable_tqdm": {
+      "value": false
+    },
+    "fp16_backend": {
+      "value": "auto"
+    },
+    "hub_model_id": {
+      "value": null
+    },
+    "hub_strategy": {
+      "value": "every_save"
+    },
+    "lora_dropout": {
+      "value": 0.05
+    },
+    "restore_from": {
+      "value": ""
+    },
+    "warmup_ratio": {
+      "value": 0
+    },
+    "warmup_steps": {
+      "value": 300
+    },
+    "weight_decay": {
+      "value": 0
+    },
+    "eval_on_start": {
+      "value": false
+    },
+    "eval_strategy": {
+      "value": "steps"
+    },
+    "jit_mode_eval": {
+      "value": false
+    },
+    "learning_rate": {
+      "value": 0.0001
+    },
+    "logging_steps": {
+      "value": 25
+    },
+    "max_grad_norm": {
+      "value": 2
+    },
+    "mp_parameters": {
+      "value": ""
+    },
+    "save_strategy": {
+      "value": "steps"
+    },
+    "torch_compile": {
+      "value": false
+    },
+    "tpu_num_cores": {
+      "value": null
+    },
+    "bf16_full_eval": {
+      "value": false
+    },
+    "fixed_mem_size": {
+      "value": 128
+    },
+    "fp16_full_eval": {
+      "value": false
+    },
+    "fp16_opt_level": {
+      "value": "O1"
+    },
+    "max_out_length": {
+      "value": 15
+    },
+    "use_mps_device": {
+      "value": false
+    },
+    "group_by_length": {
+      "value": false
+    },
+    "hub_always_push": {
+      "value": false
+    },
+    "long_text_cache": {
+      "value": "icae/data/datasets/long_texts.json"
+    },
+    "save_only_model": {
+      "value": false
+    },
+    "deepspeed_plugin": {
+      "value": null
+    },
+    "eval_output_file": {
+      "value": "icae/data/datasets/eval_data.pt"
+    },
+    "full_determinism": {
+      "value": false
+    },
+    "hub_private_repo": {
+      "value": null
+    },
+    "ignore_data_skip": {
+      "value": false
+    },
+    "log_on_each_node": {
+      "value": true
+    },
+    "logging_strategy": {
+      "value": "steps"
+    },
+    "max_eval_samples": {
+      "value": null
+    },
+    "model_max_length": {
+      "value": 4096
+    },
+    "num_train_epochs": {
+      "value": 3
+    },
+    "save_safetensors": {
+      "value": true
+    },
+    "save_total_limit": {
+      "value": null
+    },
+    "use_liger_kernel": {
+      "value": false
+    },
+    "ddp_bucket_cap_mb": {
+      "value": null
+    },
+    "distributed_state": {
+      "value": "Distributed environment: NO\nNum processes: 1\nProcess index: 0\nLocal process index: 0\nDevice: cuda\n"
+    },
+    "greater_is_better": {
+      "value": null
+    },
+    "log_level_replica": {
+      "value": "warning"
+    },
+    "lr_scheduler_type": {
+      "value": "linear"
+    },
+    "max_train_samples": {
+      "value": null
+    },
+    "min_tokens_for_lm": {
+      "value": 64
+    },
+    "push_to_hub_token": {
+      "value": "<PUSH_TO_HUB_TOKEN>"
+    },
+    "save_on_each_node": {
+      "value": false
+    },
+    "tpu_metrics_debug": {
+      "value": false
+    },
+    "train_output_file": {
+      "value": "icae/data/datasets/train_data.pt"
+    },
+    "accelerator_config": {
+      "value": {
+        "even_batches": true,
+        "non_blocking": false,
+        "split_batches": false,
+        "dispatch_batches": null,
+        "use_configured_state": false,
+        "use_seedable_sampler": true,
+        "gradient_accumulation_kwargs": null
+      }
+    },
+    "batch_eval_metrics": {
+      "value": false
+    },
+    "length_column_name": {
+      "value": "length"
+    },
+    "logging_first_step": {
+      "value": false
+    },
+    "model_name_or_path": {
+      "value": "Qwen/Qwen3-8B"
+    },
+    "torch_compile_mode": {
+      "value": null
+    },
+    "eval_ae_num_samples": {
+      "value": 10
+    },
+    "fsdp_min_num_params": {
+      "value": 0
+    },
+    "include_for_metrics": {
+      "value": []
+    },
+    "leave_tokens_for_lm": {
+      "value": 8
+    },
+    "lora_target_modules": {
+      "value": [
+        "q_proj",
+        "v_proj"
+      ]
+    },
+    "neftune_noise_alpha": {
+      "value": null
+    },
+    "skip_memory_metrics": {
+      "value": true
+    },
+    "auto_find_batch_size": {
+      "value": false
+    },
+    "dataloader_drop_last": {
+      "value": true
+    },
+    "optim_target_modules": {
+      "value": null
+    },
+    "overwrite_output_dir": {
+      "value": false
+    },
+    "prediction_loss_only": {
+      "value": false
+    },
+    "push_to_hub_model_id": {
+      "value": null
+    },
+    "dataloader_pin_memory": {
+      "value": true
+    },
+    "ddp_broadcast_buffers": {
+      "value": null
+    },
+    "mean_compression_rate": {
+      "value": 4
+    },
+    "metric_for_best_model": {
+      "value": null
+    },
+    "remove_unused_columns": {
+      "value": true
+    },
+    "torch_compile_backend": {
+      "value": null
+    },
+    "dataloader_num_workers": {
+      "value": 0
+    },
+    "eval_do_concat_batches": {
+      "value": true
+    },
+    "eval_use_gather_object": {
+      "value": false
+    },
+    "gradient_checkpointing": {
+      "value": false
+    },
+    "half_precision_backend": {
+      "value": "auto"
+    },
+    "label_smoothing_factor": {
+      "value": 0
+    },
+    "load_best_model_at_end": {
+      "value": false
+    },
+    "logging_nan_inf_filter": {
+      "value": true
+    },
+    "resume_from_checkpoint": {
+      "value": null
+    },
+    "__cached__setup_devices": {
+      "value": "cuda:0"
+    },
+    "eval_accumulation_steps": {
+      "value": null
+    },
+    "per_gpu_eval_batch_size": {
+      "value": null
+    },
+    "torch_empty_cache_steps": {
+      "value": null
+    },
+    "add_special_token_for_lm": {
+      "value": false
+    },
+    "per_gpu_train_batch_size": {
+      "value": null
+    },
+    "push_to_hub_organization": {
+      "value": null
+    },
+    "use_position_identifiers": {
+      "value": true
+    },
+    "include_tokens_per_second": {
+      "value": false
+    },
+    "dataloader_prefetch_factor": {
+      "value": null
+    },
+    "ddp_find_unused_parameters": {
+      "value": null
+    },
+    "include_inputs_for_metrics": {
+      "value": false
+    },
+    "per_device_eval_batch_size": {
+      "value": 1
+    },
+    "use_legacy_prediction_loop": {
+      "value": false
+    },
+    "gradient_accumulation_steps": {
+      "value": 8
+    },
+    "per_device_train_batch_size": {
+      "value": 1
+    },
+    "average_tokens_across_devices": {
+      "value": false
+    },
+    "dataloader_persistent_workers": {
+      "value": false
+    },
+    "gradient_checkpointing_kwargs": {
+      "value": null
+    },
+    "include_num_input_tokens_seen": {
+      "value": false
+    },
+    "fsdp_transformer_layer_cls_to_wrap": {
+      "value": null
+    },
+    "restore_callback_states_from_checkpoint": {
+      "value": false
+    }
+  }

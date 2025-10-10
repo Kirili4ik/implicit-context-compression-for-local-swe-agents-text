@@ -3,13 +3,31 @@
 % ========================================
 \chapter{Limitations and Future Work}
 
+\section{Reframing the Goal: Feature Extraction vs. Compression}
+
+When developing a context condensation strategy, the definition of success must be carefully framed.
+The approach investigated utilizes the In-context Autoencoder (ICAE) \cite{ge_-context_2024}, which leverages the power of an LLM to compress a long context into short compact memory slots that can be directly conditioned upon by the decoder LLM.
+
+However, the approach should be redefined not merely as "compression," which often implies a robust, high-ratio data reduction, but rather as "summarization" or "fixed length feature extraction," due to a core methodological constraint.
+This constraint arises from the hardcoded, non-robust nature of the intended output length (e.g., aiming for 256 tokens in general discussion).
+
+This reframing is critical because lossless compression typically struggles to achieve ratios exceeding $10\times$.
+Under high compression ratios (lossy compression), the assumption that "all tokens in the context are equally important"—an assumption intrinsically aligned with lossless autoencoding training—is violated.
+When the information carrier capacity is limited, the compression mechanism should ideally focus only on the most important tokens, which conflicts with the uniform coverage implied by fixed-length encoding.
+
+The fundamental mechanism supporting this goal is the relative density of different representation spaces.
+The latent space of embeddings is "much denser than the discrete space of tokens," which is the underlying justification for learning context condensation.
+Therefore, the thesis investigates how condensing environment observations (which contain irrelevant or redundant information) into continuous representations (embeddings/memory slots) affects agent performance and efficiency when addressing the context length challenge.
+
 
 % ========================================
 % SECTION 6.1: LIMITATIONS OF FIXED-LENGTH COMPRESSION
 % ========================================
 \section{Limitations of Fixed-Length Compression}
 
-The methodology assumes that "all tokens in the context are equally important," aligning intrinsically with lossless compression (autoencoding), which becomes problematic under high compression ratios (lossy compression). The non-robustness of the approach is constrained by the hardcoded number of memory tokens (e.g., 256 tokens in discussion), defining the limitation of the approach as fixed-length feature extraction. Experimental results confirm that improvement attenuates or fails at high compression ratios (e.g., beyond 15x or 31x).
+The methodology assumes that "all tokens in the context are equally important," aligning intrinsically with lossless compression (autoencoding), which becomes problematic under high compression ratios (lossy compression).
+The non-robustness of the approach is constrained by the hardcoded number of memory tokens (e.g., 256 tokens in discussion), defining the limitation of the approach as fixed-length feature extraction.
+Experimental results confirm that improvement attenuates or fails at high compression ratios (e.g., beyond 15x or 31x).
 
 
 % ========================================
@@ -25,4 +43,11 @@ Due to computational limitations, experiments were mainly conducted on Llama mod
 % ========================================
 \section{Outlook for Future Research}
 
-Future work should explore validating the ICAE effectiveness on larger and stronger LLMs, as performance is expected to benefit more from more powerful target models. Potential extension to multimodal LLMs (images, video, audio) is suggested, as these modalities have greater compression potential.
+Future work should explore validating the ICAE \cite{ge_-context_2024} effectiveness on larger and stronger LLMs, as performance is expected to benefit more from more powerful target models.
+Potential extension to multimodal LLMs (images, video, audio) is suggested, as these modalities have greater compression potential.
+
+\subsection{Open Source Contributions and Reproducibility}
+
+To advance the field of context compression for software engineering agents, we release our complete implementation, including pretrained models achieving 95\% reconstruction BLEU and fine-tuned models that outperform uncompressed baselines on SQuAD. Our comprehensive release includes all training configurations, hyperparameters, and experiment logs, enabling future researchers to reproduce our results and build upon this work.
+
+The open-source nature of this contribution addresses the reproducibility crisis in machine learning research, providing both the tools and transparency necessary for scientific progress in context management for LLM agents. All code, model checkpoints, and experiment logs are available at the project repository, with full Weights \& Biases experiment tracking for both pretraining and fine-tuning phases.

@@ -9,8 +9,80 @@
 % APPENDIX SECTION A.1: TRAINING DETAILS AND HYPERPARAMETERS
 % ========================================
 \section{Training Details and Hyperparameters}
+\label{app:training_details}
 
-Detailed configuration for training (Optimizer, learning rate, batch size, number of steps for pretrain and fine-tuning). Information on hardware used (Nvidia H200 GPUs).
+\subsection{Pretraining Configuration}
+
+\begin{table}[h]
+    \centering
+    \small
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Parameter} & \textbf{Value} \\
+        \midrule
+        Base Model & Qwen3-8B \\
+        Dataset & SlimPajama-6B \\
+        Learning Rate & $1 \times 10^{-4}$ \\
+        Batch Size & 1 (with 8-step gradient accumulation) \\
+        Training Steps & 100,000 \\
+        Epochs & 3 \\
+        Memory Size & 128 tokens (4× compression) \\
+        LoRA Rank & 128 \\
+        LoRA Target Modules & q\_proj, v\_proj \\
+        Optimizer & AdamW \\
+        Weight Decay & 0 \\
+        Warmup Steps & 300 \\
+        Max Gradient Norm & 2 \\
+        Hardware & 1× NVIDIA H200 GPU \\
+        Training Time & ~1 day 15 hours \\
+        \bottomrule
+    \end{tabular}
+    \caption{Pretraining hyperparameters and configuration}
+    \label{tab:pretrain_config}
+\end{table}
+
+\subsection{Fine-tuning Configuration}
+
+\begin{table}[h]
+    \centering
+    \small
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Parameter} & \textbf{Value} \\
+        \midrule
+        Base Model & Qwen3-8B \\
+        Dataset & SWE-bench trajectories \\
+        Learning Rate & $5 \times 10^{-5}$ \\
+        Batch Size & 1 (with 1-step gradient accumulation) \\
+        Training Steps & 150,000 \\
+        Epochs & 5 \\
+        Memory Size & 256 tokens \\
+        LoRA Rank & 128 \\
+        LoRA Target Modules & q\_proj, v\_proj \\
+        Optimizer & AdamW \\
+        Weight Decay & 0 \\
+        Warmup Steps & 250 \\
+        Max Gradient Norm & 2 \\
+        Hardware & 1× NVIDIA H200 GPU \\
+        Training Time & ~3 days \\
+        Thinking Mechanism & Disabled \\
+        \bottomrule
+    \end{tabular}
+    \caption{Fine-tuning hyperparameters and configuration}
+    \label{tab:finetune_config}
+\end{table}
+
+\subsection{Reproducibility Resources}
+
+To ensure full reproducibility, we publish our complete implementation including:
+\begin{itemize}
+    \item Complete ICAE framework for both pretraining and fine-tuning phases
+    \item All training configurations and hyperparameters
+    \item Full Weights \& Biases experiment logs for pretraining: \url{https://wandb.ai/kirili4ik/icae-pretraining}
+    \item Full Weights \& Biases experiment logs for fine-tuning: \url{https://wandb.ai/kirili4ik/icae-swebench-finetune}
+    \item Pretrained model checkpoints achieving 95\% reconstruction BLEU
+    \item Fine-tuned models that outperform uncompressed baselines on SQuAD
+\end{itemize}
 
 
 % ========================================
@@ -34,7 +106,7 @@ Details on the creation of the PWC dataset using GPT-4 to generate (context, pro
 % ========================================
 \section{Detailed Evaluation Tables}
 
-Comprehensive tables of model performance, including token-wise accuracy, mean tool-call time, and resolved issues for various ICAE variants (e.g., Qwen-LoRA-FT, ICAE (Qwen-LoRA-FT) Qwen).
+Comprehensive tables of model performance, including token-wise accuracy, mean tool-call time, and resolved issues for various ICAE \cite{ge_-context_2024} variants (e.g., Qwen-LoRA-FT, ICAE (Qwen-LoRA-FT) Qwen).
 
 
 % ========================================

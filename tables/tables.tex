@@ -1,0 +1,220 @@
+\documentclass{article}
+\usepackage{xcolor} % Add this in the preamble for color support
+\usepackage{graphicx} % Required for inserting images
+\usepackage{booktabs} % For \addlinespace and improved tables
+\usepackage{booktabs}     % для качественной таблицы
+\usepackage{graphicx}     % если уже не подключён
+\usepackage{caption}      % опционально для стилизации подписей
+\usepackage{booktabs,tabularx}
+\usepackage{fontawesome5}
+\newcommand{\hourglass}{\faHourglassHalf}
+
+\title{fast}
+\author{kirill-gelvan }
+\date{January 2025}
+
+\begin{document}
+
+% -------------------------------------------------
+% Таблица 2. Бейзлайн vs усреднённые варианты
+\begin{table}[h]
+    \centering
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Setting (SQuAD), context embed} &
+        \textbf{Exact Match} & \textbf{F1} \\
+        \midrule
+        Baseline — hard tokens         & \textbf{0.58} & \textbf{0.71} \\
+        Hard embedded, avg ×2          & 0.09 & 0.21 \\
+        Soft embedded online, avg ×2          & 0.05 & 0.11 \\
+        Soft embedded \text{regenerate-llm} avg ×2          & 0.07 & 0.16 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Baseline against averaging techniques (Prompt–Q–C)}
+    \label{tab:avg_variants}
+\end{table}
+% -------------------------------------------------
+
+% -------------------------------------------------
+% Таблица 3. ICAE на SQuAD
+\begin{table}[h]
+    \centering
+    \begin{tabular}{lccc}
+        \toprule
+        \textbf{Model} &
+        \textbf{Compression} &
+        \textbf{Exact Match} &
+        \textbf{F1} \\
+        \midrule
+        Mistral-7B (no FT)          & ×$1$         & 49 & 68 \\
+        LoRA-FT baseline            & ×$1$         & \underline{59} & \underline{65} \\
+        ICAE FT (PwC, authors)       & ×$1.7\pm0.7$ & 41 & 57 \\
+        ICAE FT (SQuAD, ours)              & ×$1.7\pm0.7$ & \textbf{69} & \textbf{73} \\
+        \bottomrule
+    \end{tabular}
+    \caption{ICAE averaging on SQuAD}
+    \label{tab:icae_squad}
+\end{table}
+% -------------------------------------------------
+
+
+
+% -------------------------------------------------
+% Таблица X. Qwen vs ICAE variants (encoder/decoder split)
+% \begin{table}[h]
+%    \centering
+%    \begin{tabular}{llc}
+%        \toprule
+%        \textbf{Encoder} & \textbf{Decoder} & \textbf{Accuracy score} \\
+%        \midrule
+%        —                                  & Qwen            & 0.9031 \\
+%        delete all tool outputs            & Qwen            & 0.8850 \\
+%        delete long tool outputs           & Qwen            & 0.8911 \\
+%        —          & Qwen-LoRA-FT (5k traj)            & $\sim 0.9235$ \\
+%        ICAE (Qwen pretrained)                       & Qwen    & 0.8855 \\
+%        ICAE (Qwen-LoRA-FT, 3k traj) & Qwen  & 0.9090 \\
+%
+%        \bottomrule
+%    \end{tabular}
+%    \caption{Qwen and ICAE variants}
+%    \label{tab:qwen_icae_variants}
+% \end{table}
+% -------------------------------------------------
+
+% -------------------------------------------------
+% Таблица X. Qwen vs ICAE variants (encoder/decoder split)
+\begin{table}[h]
+    \centering
+    \setlength{\tabcolsep}{6pt}
+    \begin{tabular}{llcc}
+        \toprule
+        \textbf{Encoder} & \textbf{Decoder} & \textbf{Accuracy} & \textbf{Mean tool-call time (s)} \\
+        \midrule
+        —                           & Qwen-Full-FT   & 0.9497 & 0.5495 \\
+        —                           & Qwen-LoRA-FT   & 0.9153 & 0.5387 \\
+        —                           & Qwen           & 0.9000 & 0.5437 \\
+        del long obs-s              & Qwen           & 0.8911 & — \\
+        del all obs-s               & Qwen           & 0.8850 & — \\
+        ICAE (Qwen-LoRA-PT w/ Qwen)      & Qwen           & 0.8855 & — \\
+        ICAE (Qwen-LoRA-FT)         & Qwen           & 0.9089 & \textbf{0.4880} (0.13 + 0.35) \\        
+        
+        \bottomrule
+    \end{tabular}
+    \caption{Qwen and ICAE future variants. FT=FineTuning, PT=PreTraining}
+    \label{tab:qwen_icae_variants}
+\end{table}
+% -------------------------------------------------
+
+
+% -------------------------------------------------
+% Таблица X. Qwen vs ICAE variants (encoder/decoder split)
+\begin{table}[h]
+    \centering
+    \setlength{\tabcolsep}{6pt}
+    \begin{tabular}{llcc}
+        \toprule
+        \textbf{Encoder} & \textbf{Decoder} & \textbf{Accuracy} & \textbf{Mean tool-call time (s)} \\
+        \midrule
+        % --- Baseline encoder
+        —                           & Qwen-Full-FT   & 0.9497 & 0.5495 \\
+        —                           & Qwen-LoRA-FT   & 0.9153 & 0.5387 \\
+        —                           & Qwen           & 0.9000 & 0.5437 \\
+        \addlinespace
+        % --- Ablations
+        del long obs-s              & Qwen           & 0.8911 & — \\
+        del all obs-s               & Qwen           & 0.8850 & — \\
+        \addlinespace
+        % --- ICAE (Qwen pretrained) encoder
+        ICAE (Qwen-LoRA-PT w/ Q-Full-FT)      & Qwen-Full-FT   &  0.9219    &  — \\
+        ICAE (Qwen-LoRA-PT w/ Qwen)      & Qwen           & 0.8855 & — \\
+        \addlinespace
+        % --- ICAE (Qwen-LoRA-FT) encoder
+        ICAE (Qwen-LoRA-FT)         & Qwen-Full-FT   & —    & —  \\
+        ICAE (Qwen-LoRA-FT)         & Qwen-LoRA-FT   & —    & — \\
+        ICAE (Qwen-LoRA-FT)         & Qwen           & 0.9089 & \textbf{0.4880} (0.13 + 0.35) \\        
+
+        
+        \bottomrule
+    \end{tabular}
+    \caption{Qwen and ICAE future variants. FT=FineTuning, PT=PreTraining}
+    \label{tab:qwen_icae_variants}
+\end{table}
+% -------------------------------------------------
+
+
+% -------------------------------------------------
+% Таблица X. Qwen vs ICAE variants (encoder/decoder split)
+\begin{table}[h]
+    \centering
+    \setlength{\tabcolsep}{6pt}
+    \begin{tabular}{llcc}
+        \toprule
+        \textbf{Encoder} & \textbf{Decoder} & \textbf{Accuracy} & \textbf{Mean tool-call time (s)} \\
+        \midrule
+        % --- Baseline encoder
+        —                        & Full-FT   & 0.9484 & 1.24 \\
+        —                        & LoRA-FT   & 0.9118 & 1.24 \\
+        —                        & Qwen           & 0.8967 & 1.23 \\
+        \addlinespace
+        % --- Ablations
+        del long obs-s             & Qwen           & 0.8873 & 0.44 \\
+        del all obs-s              & Qwen           & 0.8802 & 0.39 \\
+        \addlinespace
+        % --- ICAE (Qwen pretrained) encoder
+        ICAE (LoRA-PT w/ Full-FT)   & Full-FT   &  0.9219    &  — \\
+        ICAE (LoRA-PT w/ Qwen)    & Qwen           &  0.8808 & \textbf{1.12 (0.31+0.81)} \\
+        \addlinespace
+        % --- ICAE (Qwen-LoRA-FT) encoder
+        ICAE (LoRA-FT)         & Full-FT   &  ?   & —  \\
+        ICAE (LoRA-FT)         & LoRA-FT   & 0.9263   & —  \\
+        ICAE (LoRA-FT)         & Qwen           & 0.9020 & — \\
+        % bad-seed ICAE (LoRA-FT)         & Qwen           & 0.8918 & — \\       
+
+        
+        \bottomrule
+    \end{tabular}
+    \caption{No think bug table. Qwen and ICAE future variants. FT=FineTuning, PT=PreTraining}
+    \label{tab:icae_variants}
+\end{table}
+% -------------------------------------------------
+
+\newpage
+\newpage
+
+% -------------------------------------------------
+% Таблица X. Qwen vs ICAE variants (encoder/decoder split) - Абсолютные значения
+\begin{table}[h]
+    \centering
+    \small
+    \setlength{\tabcolsep}{4pt}
+    % --- Добавлены рамки по краям таблицы для цельного вида ---
+    \begin{tabular}{|ll|ccc|}
+        \hline
+        \textbf{Encoder} & \textbf{Decoder} & \textbf{Acc.} & \textbf{Time (s)} & \textbf{Resolved (/500)} \\
+        \hline
+        % --- Baseline encoder
+        —                         & Qwen-Full-FT   & 0.9484 & 1.24                      & —         \\
+        —                         & Qwen-LoRA-FT   & 0.9118 & 1.24                      & 10        \\
+        —                         & Qwen           & 0.8967 & 1.23                      & 26        \\
+        \hline
+        % --- ICAE (Qwen-LoRA-FT) encoder
+        ICAE (Qwen-LoRA-FT)       & Qwen           & 0.9020 & —                         & 11        \\
+        ICAE (Qwen-LoRA-FT)       & Qwen-LoRA-FT   & 0.9263 & —                         & 3 (overfit?) \\
+        ICAE (Qwen-LoRA-FT)       & Qwen-Full-FT   & ?      & —                         & —         \\
+        \hline
+        % --- Ablations
+        del long obs-s            & Qwen           & 0.8873 & 0.44                      & 1         \\
+        del all obs-s             & Qwen           & 0.8802 & 0.39                      & 0         \\
+        \hline
+        % --- ICAE (Qwen pretrained) encoder
+        ICAE (Qwen-LoRA-PT w/ Q-Full-FT) & Qwen-Full-FT   & 0.9219 & —                         & —         \\
+        ICAE (Qwen-LoRA-PT w/ Qwen)      & Qwen           & 0.8808 & \textbf{1.12 (0.31+0.81)} & —         \\
+        \hline
+    \end{tabular}
+    \caption{No think bug table. Qwen and ICAE future variants. FT=FineTuning, PT=PreTraining}
+    \label{tab:qwen_icae_variants_absolute}
+\end{table}
+% -------------------------------------------------
+
+
+\end{document}

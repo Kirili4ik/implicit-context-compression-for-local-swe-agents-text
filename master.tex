@@ -20,8 +20,8 @@ coverBCOR=11mm% binding correction for the cover - adapt accordingly
 
 \usepackage{diffcoeff}
 \usepackage{amsmath}
-\newtheorem{definition}{Definition}[section]
-\newtheorem{theorem}[definition]{Satz}
+% \newtheorem{definition}{Definition}[section]
+% \newtheorem{theorem}[definition]{Satz}
 
 %Literatur
 \usepackage[%
@@ -39,7 +39,7 @@ coverBCOR=11mm% binding correction for the cover - adapt accordingly
     giveninits=true,
     ]%
 {biblatex}
-\addbibresource{literature.bib}
+\addbibresource{Kirill-Thesis.bib}
 
 % automatische Anführungszeichen
 \usepackage[autostyle=true]{csquotes}
@@ -79,15 +79,6 @@ A brief abstract of this thesis in English.
 \mainmatter{}
 
 
-To use the \LaTeX{} templates provided here you will need to add the directory \verb|tum-templates| as a local package directory to your \LaTeX{} distribution. An easy way to do this is by setting the environment variable \verb|TEXINPUTS| to \verb|.//:| on Linux/Mac systems (meaning: search the current directory and its subdirectories for packages first, then use the usual search path). On a Linux or Mac you can compile this document to a PDF file in a terminal through the following commands (the first command needs to be issued only once):
-\begin{verbatim}
-export TEXINPUTS=.//:
-pdflatex -output-directory=. master
-bibtex master
-pdflatex -output-directory=. master
-\end{verbatim}
-
-
 % ========================================
 % CHAPTER FILES
 % ========================================
@@ -113,7 +104,7 @@ pdflatex -output-directory=. master
 % BIBLIOGRAPHY SECTION
 % ========================================
 % Add any additional citations that haven't been referenced in the text
-\nocite{Alspach:2008,GaleShapley:1962} % further literature that has not been explicitly referenced in the text
+\nocite{*} % include all bibliography entries
 \printbibliography{} % print bibliography
 
 \end{document}

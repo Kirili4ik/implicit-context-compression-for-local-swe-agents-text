@@ -9,9 +9,10 @@
 % ========================================
 \section{Architectural Approaches for Long Context Modeling}
 
-Review of prior research that addressed long contexts through architectural innovations (e.g., Recurrent Memory Transformer (RMT), Longformer). Note that while these methods reduce computation, they often suffer from a decline in performance on long contexts.
+Review of prior research that addressed long contexts through architectural innovations (e.g., Recurrent Memory Transformer (RMT), Longformer).
+Note that while these methods reduce computation, they often suffer from a decline in performance on long contexts.
 
-Insbesondere weisen wir auf den wunderbaren Artikel von \textcite{Edmonds:1965} und auf~\cite{GareyJohnson:1979} für weitere Hintergründe.
+% Insbesondere weisen wir auf den wunderbaren Artikel von \textcite{Edmonds:1965} und auf~\cite{GareyJohnson:1979} für weitere Hintergründe.
 
 
 % ========================================
@@ -19,7 +20,8 @@ Insbesondere weisen wir auf den wunderbaren Artikel von \textcite{Edmonds:1965} 
 % ========================================
 \section{Soft Prompting and Context Distillation Techniques}
 
-Summary of related soft prompt methods like GIST and AutoCompressor that utilize an LLM to compress context into special tokens or summary vectors. Highlighting that these methods are often limited to compressing short prompts or require complex recursive training.
+Summary of related soft prompt methods like GIST and AutoCompressor that utilize an LLM to compress context into special tokens or summary vectors.
+Highlighting that these methods are often limited to compressing short prompts or require complex recursive training.
 
 
 % ========================================
@@ -27,4 +29,11 @@ Summary of related soft prompt methods like GIST and AutoCompressor that utilize
 % ========================================
 \section{The In-Context Autoencoder (ICAE) Framework}
 
-Introduction of ICAE as the most closely related study, leveraging an LLM to compress long context into memory slots that are conditioned on by the decoder (the frozen LLM itself).
+Introduction of ICAE \cite{ge_-context_2024} as the most closely related study, leveraging an LLM to compress long context into memory slots that are conditioned on by the decoder (the frozen LLM itself).
+
+\begin{figure}[hbt]
+  \centering
+  \includegraphics[width=0.8\textwidth]{graphs/icae.jpeg}
+  \caption{In-Context Autoencoder (ICAE) framework architecture}
+  \label{fig:icae}
+\end{figure}

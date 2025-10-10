@@ -1,0 +1,623 @@
+{
+    "bf16": {
+      "value": true
+    },
+    "fp16": {
+      "value": false
+    },
+    "fsdp": {
+      "value": []
+    },
+    "seed": {
+      "value": 42
+    },
+    "tf32": {
+      "value": null
+    },
+    "debug": {
+      "value": []
+    },
+    "optim": {
+      "value": "ADAMW_TORCH"
+    },
+    "train": {
+      "value": true
+    },
+    "_n_gpu": {
+      "value": 1
+    },
+    "_wandb": {
+      "value": {
+        "e": {
+          "68vi6827sqwvj9znrzyxfvjqf4o60hl4": {
+            "os": "Linux-5.15.0-133-generic-x86_64-with-glibc2.35",
+            "gpu": "NVIDIA H200",
+            "args": [
+              "--config_path",
+              "icae/configs/finetune_config.yaml"
+            ],
+            "disk": {
+              "/": {
+                "used": "6624597078016",
+                "total": "8524759187456"
+              }
+            },
+            "host": "h200a",
+            "root": "icae/data/checkpoints/finetune/swebench-full-256-0808",
+            "email": "gelvankirill@gmail.com",
+            "memory": {
+              "total": "1690983714816"
+            },
+            "python": "CPython 3.13.2",
+            "program": "-m icae.scripts.finetune_trajectories",
+            "writerId": "68vi6827sqwvj9znrzyxfvjqf4o60hl4",
+            "cpu_count": 64,
+            "gpu_count": 8,
+            "startedAt": "2025-08-08T16:13:58.578648Z",
+            "executable": "/home/gelvan/env/bin/python",
+            "gpu_nvidia": [
+              {
+                "name": "NVIDIA H200",
+                "uuid": "GPU-77ea57bf-da43-9759-516e-7637017b77f5",
+                "cudaCores": 16896,
+                "memoryTotal": "150754820096",
+                "architecture": "Hopper"
+              },
+              {
+                "name": "NVIDIA H200",
+                "uuid": "GPU-65f7001a-b71d-77b1-e1dc-834bc1425ac4",
+                "cudaCores": 16896,
+                "memoryTotal": "150754820096",
+                "architecture": "Hopper"
+              },
+              {
+                "name": "NVIDIA H200",
+                "uuid": "GPU-ea771852-9677-cb70-972a-3f4d872148a9",
+                "cudaCores": 16896,
+                "memoryTotal": "150754820096",
+                "architecture": "Hopper"
+              },
+              {
+                "name": "NVIDIA H200",
+                "uuid": "GPU-95fa37e2-ef93-72df-7656-68bdc321e200",
+                "cudaCores": 16896,
+                "memoryTotal": "150754820096",
+                "architecture": "Hopper"
+              },
+              {
+                "name": "NVIDIA H200",
+                "uuid": "GPU-222d393a-0bb7-d65b-1fb7-4c775bf40f98",
+                "cudaCores": 16896,
+                "memoryTotal": "150754820096",
+                "architecture": "Hopper"
+              },
+              {
+                "name": "NVIDIA H200",
+                "uuid": "GPU-2fa88092-89fa-2bec-7c44-e853641c9fd3",
+                "cudaCores": 16896,
+                "memoryTotal": "150754820096",
+                "architecture": "Hopper"
+              },
+              {
+                "name": "NVIDIA H200",
+                "uuid": "GPU-98b20398-0863-fa4e-731b-f9787c4f2566",
+                "cudaCores": 16896,
+                "memoryTotal": "150754820096",
+                "architecture": "Hopper"
+              },
+              {
+                "name": "NVIDIA H200",
+                "uuid": "GPU-2a47024e-71ed-965c-216d-6f93c6290a13",
+                "cudaCores": 16896,
+                "memoryTotal": "150754820096",
+                "architecture": "Hopper"
+              }
+            ],
+            "cudaVersion": "12.4",
+            "cpu_count_logical": 128
+          }
+        },
+        "m": [],
+        "t": {
+          "1": [
+            1,
+            11,
+            49,
+            51,
+            71,
+            98
+          ],
+          "2": [
+            1,
+            11,
+            49,
+            51,
+            71,
+            98
+          ],
+          "3": [
+            13,
+            16
+          ],
+          "4": "3.13.2",
+          "5": "0.21.0",
+          "6": "4.53.0",
+          "12": "0.21.0",
+          "13": "linux-x86_64"
+        },
+        "cli_version": "0.21.0",
+        "python_version": "3.13.2"
+      }
+    },
+    "lora_r": {
+      "value": 128
+    },
+    "do_eval": {
+      "value": true
+    },
+    "min_len": {
+      "value": 512
+    },
+    "no_cuda": {
+      "value": false
+    },
+    "use_cpu": {
+      "value": false
+    },
+    "do_train": {
+      "value": true
+    },
+    "lm_ratio": {
+      "value": 0
+    },
+    "run_name": {
+      "value": "icae/data/checkpoints/finetune/swebench-full-256-0808"
+    },
+    "use_ipex": {
+      "value": false
+    },
+    "adafactor": {
+      "value": false
+    },
+    "data_seed": {
+      "value": null
+    },
+    "deepspeed": {
+      "value": null
+    },
+    "eval_size": {
+      "value": 500
+    },
+    "hub_token": {
+      "value": null
+    },
+    "log_level": {
+      "value": "passive"
+    },
+    "max_steps": {
+      "value": -1
+    },
+    "ray_scope": {
+      "value": "last"
+    },
+    "report_to": {
+      "value": [
+        "wandb"
+      ]
+    },
+    "token_num": {
+      "value": 1000000000
+    },
+    "adam_beta1": {
+      "value": 0.9
+    },
+    "adam_beta2": {
+      "value": 0.999
+    },
+    "do_predict": {
+      "value": false
+    },
+    "eval_delay": {
+      "value": 0
+    },
+    "eval_steps": {
+      "value": 1000
+    },
+    "local_rank": {
+      "value": 0
+    },
+    "model_type": {
+      "value": "icae"
+    },
+    "optim_args": {
+      "value": null
+    },
+    "output_dir": {
+      "value": "icae/data/checkpoints/finetune/swebench-full-256-0808"
+    },
+    "past_index": {
+      "value": -1
+    },
+    "save_steps": {
+      "value": 5000
+    },
+    "ddp_backend": {
+      "value": null
+    },
+    "ddp_timeout": {
+      "value": 1800
+    },
+    "fsdp_config": {
+      "value": {
+        "xla": false,
+        "xla_fsdp_v2": false,
+        "min_num_params": 0,
+        "xla_fsdp_grad_ckpt": false
+      }
+    },
+    "label_names": {
+      "value": null
+    },
+    "logging_dir": {
+      "value": "icae/data/checkpoints/finetune/swebench-full-256-0808/runs/Aug08_16-13-58_h200a"
+    },
+    "push_to_hub": {
+      "value": false
+    },
+    "torchdynamo": {
+      "value": null
+    },
+    "adam_epsilon": {
+      "value": 1e-8
+    },
+    "dataset_repo": {
+      "value": "DKYoon/SlimPajama-6B"
+    },
+    "disable_tqdm": {
+      "value": false
+    },
+    "fp16_backend": {
+      "value": "auto"
+    },
+    "hub_model_id": {
+      "value": null
+    },
+    "hub_revision": {
+      "value": null
+    },
+    "hub_strategy": {
+      "value": "EVERY_SAVE"
+    },
+    "lora_dropout": {
+      "value": 0.05
+    },
+    "restore_from": {
+      "value": "icae/data/checkpoints/pretrain/pretrain_2607_1024_4_1B/checkpoint-12000/model.safetensors"
+    },
+    "warmup_ratio": {
+      "value": 0
+    },
+    "warmup_steps": {
+      "value": 250
+    },
+    "weight_decay": {
+      "value": 0
+    },
+    "eval_on_start": {
+      "value": false
+    },
+    "eval_strategy": {
+      "value": "STEPS"
+    },
+    "jit_mode_eval": {
+      "value": false
+    },
+    "learning_rate": {
+      "value": 0.00005
+    },
+    "logging_steps": {
+      "value": 1000
+    },
+    "max_grad_norm": {
+      "value": 2
+    },
+    "mp_parameters": {
+      "value": ""
+    },
+    "save_strategy": {
+      "value": "STEPS"
+    },
+    "torch_compile": {
+      "value": false
+    },
+    "tpu_num_cores": {
+      "value": null
+    },
+    "bf16_full_eval": {
+      "value": false
+    },
+    "fixed_mem_size": {
+      "value": 256
+    },
+    "fp16_full_eval": {
+      "value": false
+    },
+    "fp16_opt_level": {
+      "value": "O1"
+    },
+    "max_out_length": {
+      "value": 250
+    },
+    "use_mps_device": {
+      "value": false
+    },
+    "group_by_length": {
+      "value": false
+    },
+    "hub_always_push": {
+      "value": false
+    },
+    "long_text_cache": {
+      "value": "icae/data/datasets/long_texts.json"
+    },
+    "save_only_model": {
+      "value": false
+    },
+    "deepspeed_plugin": {
+      "value": null
+    },
+    "eval_output_file": {
+      "value": "icae/data/datasets/eval_data.pt"
+    },
+    "full_determinism": {
+      "value": false
+    },
+    "hub_private_repo": {
+      "value": null
+    },
+    "ignore_data_skip": {
+      "value": false
+    },
+    "log_on_each_node": {
+      "value": true
+    },
+    "logging_strategy": {
+      "value": "STEPS"
+    },
+    "max_eval_samples": {
+      "value": 500
+    },
+    "model_max_length": {
+      "value": 4096
+    },
+    "num_train_epochs": {
+      "value": 5
+    },
+    "save_safetensors": {
+      "value": true
+    },
+    "save_total_limit": {
+      "value": null
+    },
+    "use_liger_kernel": {
+      "value": false
+    },
+    "ddp_bucket_cap_mb": {
+      "value": null
+    },
+    "distributed_state": {
+      "value": "Distributed environment: DistributedType.NO\nNum processes: 1\nProcess index: 0\nLocal process index: 0\nDevice: cuda\n"
+    },
+    "greater_is_better": {
+      "value": null
+    },
+    "log_level_replica": {
+      "value": "warning"
+    },
+    "lr_scheduler_type": {
+      "value": "LINEAR"
+    },
+    "max_train_samples": {
+      "value": 10000
+    },
+    "min_tokens_for_lm": {
+      "value": 64
+    },
+    "push_to_hub_token": {
+      "value": null
+    },
+    "save_on_each_node": {
+      "value": false
+    },
+    "tpu_metrics_debug": {
+      "value": false
+    },
+    "train_output_file": {
+      "value": "icae/data/datasets/train_data.pt"
+    },
+    "accelerator_config": {
+      "value": {
+        "even_batches": true,
+        "non_blocking": false,
+        "split_batches": false,
+        "dispatch_batches": null,
+        "use_configured_state": false,
+        "use_seedable_sampler": true,
+        "gradient_accumulation_kwargs": null
+      }
+    },
+    "batch_eval_metrics": {
+      "value": false
+    },
+    "length_column_name": {
+      "value": "length"
+    },
+    "logging_first_step": {
+      "value": false
+    },
+    "model_name_or_path": {
+      "value": "Qwen/Qwen3-8B"
+    },
+    "num_training_steps": {
+      "value": 150000
+    },
+    "torch_compile_mode": {
+      "value": null
+    },
+    "eval_ae_num_samples": {
+      "value": 10
+    },
+    "fsdp_min_num_params": {
+      "value": 0
+    },
+    "include_for_metrics": {
+      "value": []
+    },
+    "leave_tokens_for_lm": {
+      "value": 0
+    },
+    "liger_kernel_config": {
+      "value": null
+    },
+    "lora_target_modules": {
+      "value": [
+        "q_proj",
+        "v_proj"
+      ]
+    },
+    "neftune_noise_alpha": {
+      "value": null
+    },
+    "skip_memory_metrics": {
+      "value": true
+    },
+    "auto_find_batch_size": {
+      "value": false
+    },
+    "dataloader_drop_last": {
+      "value": true
+    },
+    "optim_target_modules": {
+      "value": null
+    },
+    "overwrite_output_dir": {
+      "value": false
+    },
+    "prediction_loss_only": {
+      "value": false
+    },
+    "push_to_hub_model_id": {
+      "value": null
+    },
+    "dataloader_pin_memory": {
+      "value": false
+    },
+    "ddp_broadcast_buffers": {
+      "value": null
+    },
+    "mean_compression_rate": {
+      "value": 4
+    },
+    "metric_for_best_model": {
+      "value": null
+    },
+    "remove_unused_columns": {
+      "value": true
+    },
+    "torch_compile_backend": {
+      "value": null
+    },
+    "dataloader_num_workers": {
+      "value": 0
+    },
+    "eval_do_concat_batches": {
+      "value": true
+    },
+    "eval_use_gather_object": {
+      "value": false
+    },
+    "gradient_checkpointing": {
+      "value": false
+    },
+    "half_precision_backend": {
+      "value": "auto"
+    },
+    "label_smoothing_factor": {
+      "value": 0
+    },
+    "load_best_model_at_end": {
+      "value": false
+    },
+    "logging_nan_inf_filter": {
+      "value": true
+    },
+    "resume_from_checkpoint": {
+      "value": null
+    },
+    "__cached__setup_devices": {
+      "value": "cuda:0"
+    },
+    "eval_accumulation_steps": {
+      "value": null
+    },
+    "per_gpu_eval_batch_size": {
+      "value": null
+    },
+    "torch_empty_cache_steps": {
+      "value": null
+    },
+    "add_special_token_for_lm": {
+      "value": false
+    },
+    "per_gpu_train_batch_size": {
+      "value": null
+    },
+    "push_to_hub_organization": {
+      "value": null
+    },
+    "use_position_identifiers": {
+      "value": true
+    },
+    "include_tokens_per_second": {
+      "value": false
+    },
+    "dataloader_prefetch_factor": {
+      "value": null
+    },
+    "ddp_find_unused_parameters": {
+      "value": null
+    },
+    "include_inputs_for_metrics": {
+      "value": false
+    },
+    "per_device_eval_batch_size": {
+      "value": 1
+    },
+    "use_legacy_prediction_loop": {
+      "value": false
+    },
+    "gradient_accumulation_steps": {
+      "value": 1
+    },
+    "per_device_train_batch_size": {
+      "value": 1
+    },
+    "average_tokens_across_devices": {
+      "value": false
+    },
+    "dataloader_persistent_workers": {
+      "value": false
+    },
+    "gradient_checkpointing_kwargs": {
+      "value": null
+    },
+    "include_num_input_tokens_seen": {
+      "value": false
+    },
+    "fsdp_transformer_layer_cls_to_wrap": {
+      "value": null
+    },
+    "restore_callback_states_from_checkpoint": {
+      "value": false
+    }
+  }
