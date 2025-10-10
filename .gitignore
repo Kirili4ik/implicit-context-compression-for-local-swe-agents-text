@@ -1,0 +1,25 @@
+.auctex-auto/*
+build/*
+!build/*.pdf
+*.aux
+*.bbl
+*-blx.bib
+*.log
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.lot
+*.out
+*.run.xml
+*.toc
+*.synctex.gz
+
+# macOS system files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

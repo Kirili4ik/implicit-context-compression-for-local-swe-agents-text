@@ -1,0 +1,28 @@
+% ========================================
+% CHAPTER 6: LIMITATIONS AND FUTURE WORK (WHAT CAN WE NOT COVER)
+% ========================================
+\chapter{Limitations and Future Work}
+
+
+% ========================================
+% SECTION 6.1: LIMITATIONS OF FIXED-LENGTH COMPRESSION
+% ========================================
+\section{Limitations of Fixed-Length Compression}
+
+The methodology assumes that "all tokens in the context are equally important," aligning intrinsically with lossless compression (autoencoding), which becomes problematic under high compression ratios (lossy compression). The non-robustness of the approach is constrained by the hardcoded number of memory tokens (e.g., 256 tokens in discussion), defining the limitation of the approach as fixed-length feature extraction. Experimental results confirm that improvement attenuates or fails at high compression ratios (e.g., beyond 15x or 31x).
+
+
+% ========================================
+% SECTION 6.2: CONSTRAINTS ON MODEL SCALE
+% ========================================
+\section{Constraints on Model Scale}
+
+Due to computational limitations, experiments were mainly conducted on Llama models up to 13 billion parameters.
+
+
+% ========================================
+% SECTION 6.3: OUTLOOK FOR FUTURE RESEARCH
+% ========================================
+\section{Outlook for Future Research}
+
+Future work should explore validating the ICAE effectiveness on larger and stronger LLMs, as performance is expected to benefit more from more powerful target models. Potential extension to multimodal LLMs (images, video, audio) is suggested, as these modalities have greater compression potential.

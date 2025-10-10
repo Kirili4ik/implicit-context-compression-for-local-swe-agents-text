@@ -1,0 +1,128 @@
+\documentclass[%
+thesis=student,% bachlor's or master's thesis
+coverpage=false,% do not print an extra cover page
+titlepage=false,% do not print an extra title page
+headmarks=true, % headmarks can be switched on or off
+english,% or `german`
+font=libertine, % use `libertine` font; alternatives: `helvet` / `palatino` / `times`
+math=newpxtx, % math font `newpxtx`; alternatives: `ams`, `pxtx`
+BCOR=5mm,% binding correction - adapt accordingly
+coverBCOR=11mm% binding correction for the cover - adapt accordingly
+]{tumbook}
+
+\makeatletter %redefine some labels from the TUM template
+\provideName{\@tum@examiner@}{Supervisor}{Themensteller} % or `Themenstellerin`
+\provideName{\@tum@supervisor@}{Advisors}{Betreuer} % or `Advisor` / `Betreuerin`
+\makeatother
+
+\usepackage{booktabs}% for more beautiful tables
+\usepackage{cleveref}% intelligent references
+
+\usepackage{diffcoeff}
+\usepackage{amsmath}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{theorem}[definition]{Satz}
+
+%Literatur
+\usepackage[%
+    backend=bibtex, %, or `biber` on more up-to-date systems
+    sortcites, % sort automatically
+    sorting=nty, % sort order
+    safeinputenc, % solves problems with unicode-formatted author names etc.
+    citestyle=alphabetic, %
+    bibstyle=alphabetic, %
+    hyperref=true, % provide clickable links
+    maxbibnames=3, % shorten author list for more than 3 names
+    maxcitenames=3, % use at most 3 names for key
+    url=false, % do not print URLs
+    doi=false, % do not print DOIs
+    giveninits=true,
+    ]%
+{biblatex}
+\addbibresource{literature.bib}
+
+% automatische Anführungszeichen
+\usepackage[autostyle=true]{csquotes}
+
+
+\title{Implicit Context Condensation for Local Software Engineering Agents}
+%%%\subtitle{A Comprehensive Study on LLM Context Management}
+
+\author{Kirill Gelvan}
+
+\degree{Master of Science}% or `Bachlor of Science`
+\dateSubmitted{31. November 2025}% preferably use some universally recognized date format
+
+
+\examiner{Prof.\@ Dr.\@ Gjergji Kasneci}% `Themensteller`
+\supervisor{Felix Steinbauer\\Igor Slinko}% `Betreuer`
+
+
+\begin{document}
+
+\frontmatter
+\maketitle
+
+\section*{Zusammenfassung}
+Eine kurze Zusammenfassung der Arbeit auf Deutsch.
+
+
+\section*{Abstract}
+A brief abstract of this thesis in English.
+
+
+\cleardoublepage{}
+
+\tableofcontents
+
+
+\mainmatter{}
+
+
+To use the \LaTeX{} templates provided here you will need to add the directory \verb|tum-templates| as a local package directory to your \LaTeX{} distribution. An easy way to do this is by setting the environment variable \verb|TEXINPUTS| to \verb|.//:| on Linux/Mac systems (meaning: search the current directory and its subdirectories for packages first, then use the usual search path). On a Linux or Mac you can compile this document to a PDF file in a terminal through the following commands (the first command needs to be issued only once):
+\begin{verbatim}
+export TEXINPUTS=.//:
+pdflatex -output-directory=. master
+bibtex master
+pdflatex -output-directory=. master
+\end{verbatim}
+
+
+% ========================================
+% CHAPTER FILES
+% ========================================
+% Each chapter is now in its own file for better organization
+\input{chapters/chapter1_introduction}
+\input{chapters/chapter2_background}
+\input{chapters/chapter3_related_work}
+\input{chapters/chapter4_methods}
+\input{chapters/chapter5_experiments}
+\input{chapters/chapter6_limitations}
+\input{chapters/chapter7_conclusion}
+\input{chapters/appendix}
+
+% ========================================
+% BACKMATTER SECTION
+% ========================================
+% Lists of figures and tables (may be removed if not needed)
+\backmatter{}
+\listoffigures% may be removed
+\listoftables% may be removed
+
+% ========================================
+% BIBLIOGRAPHY SECTION
+% ========================================
+% Add any additional citations that haven't been referenced in the text
+\nocite{Alspach:2008,GaleShapley:1962} % further literature that has not been explicitly referenced in the text
+\printbibliography{} % print bibliography
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-engine: default
+%%% TeX-command-extra-options: "-shell-escape"
+%%% ispell-local-dictionary: "american"
+%%% eval: (setenv "TEXINPUTS" ".//:")
+%%% TeX-master: t
+%%% End:
