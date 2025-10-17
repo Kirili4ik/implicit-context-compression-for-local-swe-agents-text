@@ -25,7 +25,7 @@ For example, the same information might be represented in various formats and de
 \begin{figure}[hbt]
   \centering
   \includegraphics[width=0.8\textwidth]{graphs/example1.jpeg}
-  \caption{Comparison between base agent and our agent approaches for handling large observations exceeding LLM context length. The base agent fails when processing 5000-token observations directly, while our agent successfully compresses the observation to 256 embeddings before LLM processing, enabling continued task execution.}
+  \caption{Comparison between base agent and our agent approaches for handling large observations exceeding LLM context length. The base agent fails when processing observations that are too long directly, while our agent successfully compresses the observation to 256 embeddings before LLM processing, enabling continued task execution.}
   \label{fig:example1}
 \end{figure}
 
@@ -38,11 +38,11 @@ Achieving this condensation improves the model's capability to handle long conte
 % SECTION 1.2: Implicit Context Condensation
 % ========================================
 
-\section{Implicit Context Condensation}
+\section{Implicit and Explicit Compression}
 
-The core concept of context condensation, motivated by the observation that text can convey the same information across different lengths and densities, leads directly to the discussion and comparison betwwee Implicit and Explicit Context Condensation.
-Implicit Context Condensation approach moves beyond explicit, token-based summarization techniques by utilizing the inherent density of the LLM's latent space. 
+The core concept of compression, motivated by the observation that information can be represented in different forms and densities, leads directly to the discussion and comparison between implicit and explicit approaches.
+Implicit compression moves beyond explicit, token-based techniques by utilizing the inherent density of continuous latent spaces.
 
-Instead of relying on the discrete space of tokens, Implicit Context Condensation focuses on synthesizing long sequences of input text into continuous representations (embeddings). 
-This is possible because the latent space of embeddings is much denser than the discrete space of tokens. 
-Our goal is to enable LLM agents to execute tasks requiring long chains of reasoning by successfully condensing these observations.
+Instead of relying on discrete representations, implicit compression focuses on mapping information into continuous representations (embeddings).
+This is possible because continuous latent spaces are inherently much denser than discrete spaces.
+Our goal is to enable more efficient processing of information by successfully leveraging these dense representations.
