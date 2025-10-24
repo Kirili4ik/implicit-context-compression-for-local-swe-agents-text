@@ -45,23 +45,95 @@ This negative result confirmed the hypothesis that training is necessary to effe
 
 \begin{figure}[hbt]
   \centering
-  \includegraphics[width=0.8\textwidth]{graphs/ser1.jpeg}
-  \caption{Results of the "without training" approach - SER1}
+  \includegraphics[width=0.5\textwidth]{graphs/ser1.jpeg}
+  \caption{Visualization of the "without training" approach, p1}
   \label{fig:ser1}
 \end{figure}
 
 \begin{figure}[hbt]
   \centering
-  \includegraphics[width=0.8\textwidth]{graphs/ser2.jpeg}
-  \caption{Results of the "without training" approach - SER2}
+  \includegraphics[width=0.3\textwidth]{graphs/ser2.jpeg}
+  \caption{Visualization of the "without training" approach, p2}
   \label{fig:ser2}
 \end{figure}
 
 
+\section{Initial Prototype Experiments: First Attempts at Training}
+
+Having established in \S5.1 that naively averaging ("avg, ×2") adjacent embeddings sharply degrades QA quality, we next asked whether a learned projection inserted at the embedding interface could recover performance under the same $2\times$ compression ratio.
+The motivation was that, if the embedding manifold is non-linear, a trained projection might learn a geometry-preserving down-map that simple averaging cannot provide.
+The baseline (Step 1) and the "soft/hard mix works" observation (Step 2) are illustrated in \ref{fig:steps1-3} and frame this question empirically.
+
+\begin{figure}[hbt]
+  \centering
+  \includegraphics[width=0.5\textwidth]{graphs/steps1-3.jpg}
+  \caption{Visualization of the baseline approach, step 1-3}
+  \label{fig:steps1-3}
+\end{figure}  
+
+\paragraph{Architectural variants}
+We explored minimal-capacity projections that compress two adjacent hidden vectors into one "soft token" acceptable to the frozen decoder.
+The first family was a \textbf{linear projector}, $g_\theta:\mathbb{R}^{2d}\to\mathbb{R}^{d}$, applied to $[e_{2t-1};e_{2t}]$ with optional residual gating on the arithmetic mean to stabilize scale.
+The second family was a shallow non-linear MLP (one--two layers with GELU), again mapping $2d\to d$.
+A third variant inserted a full BERT encoder \cite{devlin2018bert} (12 layers, 768-dimensional hidden states) to process the concatenated embeddings $[e_{2t-1};e_{2t}]$ and produce a single compressed representation, which was then projected back to the decoder's dimensionality.
+This encoder-based approach provided substantially higher capacity than the shallow projections, allowing the model to learn more complex compression patterns through its multi-layer self-attention mechanism.
+These designs follow the "trainable averaging" schematics shown on \ref{fig:step35}.
+
+\begin{figure}[hbt]
+  \centering
+  \includegraphics[width=0.5\textwidth]{graphs/step3.5.jpg}
+  \caption{Visualization of the experimental setup, step 3-5}
+  \label{fig:step35}
+\end{figure}  
+
+\paragraph{Training protocol and results}
+All experiments used the SQuAD \cite{squad} "context-embed" setting from \S5.1, keeping Qwen3-8B frozen and training only the projection parameters via token-level cross-entropy on answer continuations.
+After verifying the pipeline on a single batch, we trained on SQuAD train and evaluated on validation.
+Across linear, MLP, and BERT projections, models quickly overfit but did not generalize: validation loss flattened after early improvement (\ref{fig:losses_squad_1}), and EM/F1 remained well below the hard-token baseline, never closing the large gap to the no-compression control (e.g., the $\sim 50\%$--$80\%$ relative F1 drop visible for averaging).
+
+\begin{figure}[hbt]
+  \centering
+  \includegraphics[width=0.5\textwidth]{graphs/losses_squad_1.jpg}
+  \caption{Validation loss curves for the SQuAD generalization experiment using linear, MLP and BERT}
+  \label{fig:losses_squad_1}
+\end{figure}  
+
+
+\paragraph{Ablation studies}
+We varied:
+\begin{itemize}
+    \item projection type (linear vs.\ 1- or 2-layer MLP),
+    \item normalization (pre/post LayerNorm, scale-preserving residual gates),
+    \item regularization (weight decay, dropout), and
+    \item the decision to re-project via vocabulary space versus staying in hidden space.
+\end{itemize}
+We also tried unfreezing the token embedding table while keeping the transformer blocks frozen.
+None of these changes altered the qualitative outcome: projections still overfit quickly and failed to surpass the baseline (\ref{fig:steps1-3}) in EM/F1.
+These negative findings echo the summary on the checkpoint deck ("all our fine-tuning techniques do not recover quality").
+
+\paragraph{Hypotheses for the failure}
+Two factors appear decisive.
+
+Firstly, we hypothesize that if the embedding manifold is not smooth, merging two embeddings into one may lose critical geometric structure that the frozen decoder relies on, making it impossible for a simple projection to preserve the information needed for downstream tasks.
+
+
+Secondly, we hypothesize that the fundamental limitation is the expressive power of the overall model architecture.
+Even though the BERT encoder contains 0.1B parameters (more than the projections), it lacks the capacity to learn effective compression when paired with a frozen 8B decoder.
+
+This observation motivated our transition to the ICAE framework, where training LoRA adapters ($\approx$2\% of the 8B model's weights) provides substantially greater expressive power by modulating the decoder's internal representations, despite involving fewer trainable parameters than the full BERT encoder.
+
+
+\paragraph{Summary}
+The experiments illustrated in \ref{fig:step35} demonstrate that trainable projections are insufficient to recover QA performance under $\approx2\times$ compression.
+These results motivated us to explore larger-scale training approaches and alternative solutions such as the ICAE framework.
+
+
+\textbf{TODO: I STOPPED HERE}
+
 % ========================================
 % SECTION 5.2: EVALUATION ON GENERAL TEXT RECONSTRUCTION
 % ========================================
-\section{Evaluation on General Text Reconstruction}
+\section{ICAE Pretraining and Evaluation on General Text Reconstruction}
 
 Pretrained ICAE \cite{ge_-context_2024} demonstrated the ability to decompress general texts almost perfectly.
 High BLEU scores were achieved on datasets like PWC (99.1 for Mistral-7B, 99.5 for Llama-2-7B) and SQuAD (98.1 for Qwen3-8B), indicating that memory slots retained almost all context information for contexts up to 400 tokens.
@@ -71,7 +143,7 @@ Analysis of reconstruction errors showed patterns similar to human memorization 
 % ========================================
 % SECTION 5.3: EVALUATION ON QUESTION ANSWERING TASKS (OFFLINE)
 % ========================================
-\section{Evaluation on Question Answering Tasks (Offline)}
+\section{ICAE Fine-Tuning and Evaluation on Question Answering Tasks}
 
 When fine-tuned on QA tasks (SQuAD), ICAE-FT \cite{ge_-context_2024} achieved high F1 (73) and Exact Match (69\%) scores, performing well compared to LoRA-FT baselines.
 The quality of the compressed representation was shown to significantly outperform summaries generated by GPT-4 under the same length constraint (128 tokens).
@@ -99,7 +171,19 @@ The quality of the compressed representation was shown to significantly outperfo
 % ========================================
 % SECTION 5.4: EVALUATION ON AGENTIC PERFORMANCE (SWE-BENCH)
 % ========================================
-\section{Evaluation on Agentic Performance (SWE-bench)}
+\section{ICAE Fine-Tuning and Evaluation on SWE-bench Verified}
+
+% ========================================
+% SECTION 5.x: DISABLING THINKING EXPERIMENTS
+% ========================================
+\section{Disabling Thinking Experiments}
+\label{sec:disabling_thinking}
+
+We evaluated the impact of disabling thinking by inserting the token sequence \texttt{\textbackslash think \textbackslash think} with a newline marker during decoding.
+We tested two variants: adding the sequence after every step and adding it only once at the end.
+Surprisingly, the approach commonly suggested by authors (frequent insertion) yielded worse output quality than the minimal, end-only variant in our setting.
+We note that related observations of atypical Qwen3 behavior under prompting heuristics have been reported anecdotally; a systematic investigation is out of scope for this work. (as a result e.g. coder-30bA3 has no thinking mode at all)
+Further details and ablations are left for future work.
 
 Efficiency Results: ICAE \cite{ge_-context_2024} compression led to measurable efficiency improvements, achieving a theoretically 10\% faster mean tool-call generation time than the vanilla baseline (e.g., 0.4880s vs 0.5437s).
 Furthermore, latency tests showed speedups of 2.2× to 3.6× in total time for inference.

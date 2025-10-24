@@ -1,44 +1,174 @@
 % ========================================
-% CHAPTER 4: METHODS (CONCEPTUAL: ARCHITECTURE AND DATA)
+% CHAPTER 4: METHODS (CONCEPTUAL: ARCHITECTURE, DATA, AND TRAINING PROCEDURES)
 % ========================================
 \chapter{Methods}
 
 
 % ========================================
-% SECTION 4.1: ICAE MODEL ARCHITECTURE AND COMPONENTS
+% SECTION 4.1: CONCEPTUAL SETUP AND AGENTIC DATA ACQUISITION
 % ========================================
-\section{ICAE Model Architecture and Components}
+\section{Data Acquisition and Setup}
 
-The ICAE \cite{ge_-context_2024} structure consists of two modules: a lightweight encoder (LoRA-adapted LLM) and a fixed decoder (the target LLM, e.g., Qwen or Llama).
-The encoder processes the long context and appends learnable memory tokens (e.g., 128 tokens for 4x compression) to obtain memory slots.
-The decoder uses these memory slots, conditioned by prompts, to generate responses on behalf of the original context.
+\subsection{SWE-bench}
+We have chosen to use the SWE-bench \cite{jimenez2024swebench} dataset for our experiments.
+It is a well known dataset for evaluating the performance of SWE agents.
+It contains a large number of SWE tasks, each with a set of instructions and a set of expected outputs.
+They were collected from real life GitHub issues. 
+We have chosen to work with a subset -- SWE-bench Verified \cite{swebench-verified}.
+It is a subset of the SWE-bench dataset that contains only the tasks that have been verified to be correct.
+
+\subsection{Tools and Interaction Protocol (setup?)}
+We follow the SWE-smith setup for SWE-bench Verified \cite{jimenez2024swebench}, where the assistant agent interacts with the environment through a minimal toolset and a fixed protocol. 
+Concretely, the available tools are a shell interface (\texttt{bash}), a submission tool (\texttt{submit}), and a custom editing utility (\texttt{str\_replace\_editor}).
+These tools generate the observations that accumulate within the trajectory context.
+The exact SWE-smith prompt (and the tools description) is provided in Appendix~\ref{app:swe-smith-prompt}.
+It should be noted that this method does not use function calling functionality of the model. 
+While some models support a special format for function calling (e.g. additional fields for the tools descriptions etc.), in this case we just use the tools as described in the prompt.
+
+\paragraph{The \texttt{str\_replace\_editor}.}
+This is a stateful file editor that supports viewing, creating, and editing files with precise, line-exact operations.
+Its state persists across steps, enabling consistent multi-edit workflows. 
+The interface exposes the following commands: \texttt{view}, \texttt{create}, \texttt{str\_replace}, \texttt{insert}, and \texttt{undo\_edit}. 
+
+For deterministic edits, \texttt{str\_replace} requires \texttt{old\_str} to match exactly one or more consecutive lines in the target file, including whitespace.
+The \texttt{new\_str} content replaces the matched block.
+The \texttt{insert} command appends \texttt{new\_str} after a specified line number.
+
+By this, there is a lot of tools combined into one, but it works well as described in \cite{swe-smith}, so we adopt it. 
+And also to be comparable to other open sourced scores.
+
+\subsection{Agentic Trajectories as Data}
+We treat sequential action--observation interactions (trajectories) as training data.
+These trajectories were obtained using a strong teacher model (e.g., Claude Sonnet 3.7) on the SWE-bench Verified dataset to produce high-quality inputs suitable for futher training.
+The setup for generating these trajectories follows the SWE-smith setup closely\cite{swe-smith}.
+
+% ========================================
+% SECTION 4.2: ICAE MODEL ARCHITECTURE FOR AGENTIC APPLICATION
+% ========================================
+\section{ICAE Model in Agentic Setup}
+
+\subsection{ICAE Components}
+As described previously, the ICAE \cite{ge_context_2024} consists of two modules: a lightweight encoder (implemented via a LoRA-adapted LLM) and a fixed decoder (the LLM itself).
+The encoder processes the long trajectory context and generates a fixed number of learnable memory token.
+
+We use the encoder for every environment observation (\textbf{TODO: picture here?})
+So, more in detail, the encoder is only applied if all of the next are true:
+\begin{itemize}
+  \item The text is an observation (i.e. response from the environment, not the action)
+  \item The text is longer or equal than 256 tokens
+\end{itemize}
+The actions are short and do not require compression, while the observations can be long and complex.
+Due to the nature of the ICAE framework, the compression produces a fixed number of memory tokens, which we fix at 256.
+Applying the encoder to the shorter texts would be a waste of resources and would create a mismatch between the training and the validation settings.
+You can see the example of this in figure \ref{fig:ser1} and \ref{fig:ser2} from Chapter~\ref{chap:5}.
+
+\subsection{Base Model Configuration (Qwen3)}
+We use the Qwen3 model family (specificaly Qwen3-8B) as the base LLM. 
+To make things simpler, we explicitly disable long-form "thinking" during decoding by inserting the token sequence \texttt{\textbackslash think \textbackslash think} with a newline marker (\texttt{\textbackslash n}) in between.
+This is exactly how the authors of \cite{qwen3} recommend disabling thinking.
+This prefix makes the model "believe" it has already produced intermediate thoughts (empty in this case), while in fact no additional content is generated.
+We found that deleting or leaving this prefix in the history does have an inretesting affect the quality of the model, we describe this in more detail in Section~\ref{sec:5.6}.
+
+It should also be noted that the authors of \cite{ge_context_2024} have only worked with older models (such as Llama2 and Mistral-v0.1), and only publish the weights of the latter.
 
 
 % ========================================
-% SECTION 4.2: SELF-SUPERVISED PRETRAINING OBJECTIVES
+% SECTION 4.4: TRAINING PROCEDURES BASED ON QWEN3
 % ========================================
-\section{Self-Supervised Pretraining Objectives}
+\section{Training Procedures and Evaluation}
 
-Autoencoding (AE): The ICAE \cite{ge_-context_2024} is trained to restore the original input text from its memory slots, prompted by a special token [AE].
-Language Modeling (LM) / Text Continuation: An additional objective where the model predicts the continuation of the context, prompted by a special token [LM].
-This improves generalization and prevents overfitting to the AE task.
+\subsection{Pretraining (PT)}
+Our pretraining procedure follows the original ICAE formulation~\cite{ge_-context_2024}.
+We use two primary self-supervised objectives:
+\begin{enumerate}[label=(\roman*)]
+    \item \textbf{Autoencoding (AE)}, where ICAE restores the original input text from its memory slots (prompted by a special token \texttt{[AE]}).
+    \item \textbf{Language Modeling (LM) / Text Continuation}, which predicts the continuation of the context (prompted without any special tokens) to improve generalization and prevent overfitting to the AE task.
+\end{enumerate}
+This pretraining was performed on the dataset SlimPajama-6B \cite{pajama6b}\footnote{\url{https://huggingface.co/datasets/DKYoon/SlimPajama-6B}}.
+It is a common text dataset, that is used for pretraining LLMs, consisting of 6 billion tokens (the first 10\% of the first 10\% of the original 627B tokens).
+The dataset that authors used in their original paper "The Pile" was unavailable.
+It should be noted that only LoRA weights of the encoder are trained here (specifically only form Q and K matrices of the attention layers).
+So, in theory, we are training the encoder to encode the context into such embeddings, that the decoder will be able to reconstruct the original context from them or to continue the text from the context.
+
+\begin{figure}[hbt]
+  \centering
+  \includegraphics[width=0.9\textwidth]{graphs/pt_losses.png}
+  \caption{Pretraining loss curves averaged by trajectory}
+  \label{fig:pt_losses}
+\end{figure}
+
+\subsection{Fine-Tuning (FT)}
+After pretraining, ICAE is fine-tuned using trajectories from SWE-bench Verified (the proccess of obtaining trajectories is described in Section~4.1.3).
+Here as well only the LoRA weights are trained.
+The fine-tuning objective maximizes the probability of generating the correct agent action (i.e. tool call) conditioned on the memory slots (if the encoder is pplied at the current step) and the previous history???
+
+It should be noted that the training is only applied to the encoder part, while the decoder is frozen.
+
+
+During training, the backpropagation process constrains us to optimize over single-step transitions:
+So at timestep \(k\), the encoder compresses the observation \(o_{k-1}\) into embeddings. Then, the decoder generates the action \(a_k\) given the memory slots and the previous history.
+Then, token-by-token of \(a_k\) we backpropagate the loss through the decoder and the encoder, making an update of the LoRA weights of the encoder.
+Crucially, whenever an observation exceeds 256 tokens, the encoder compresses it into a fixed set of 256 memory tokens (continuous embeddings), and these memory tokens replace the original text in the accumulated history.
+If the observation is longer than 1024 tokens, we apply the encoder multiple times, preserving the compression ratio, following the authors of \cite{ge_context_2024}.
+Consequently, the model never processes the full raw text of long observations during subsequent steps—it only conditions on the compact memory representations.
+
+For example, consider a trajectory:
+\begin{enumerate}
+  \item \textbf{System prompt} (text): initial instructions and tool descriptions.
+  \item \textbf{Task description} (text): user-provided issue or goal.
+  \item \textbf{Action 1} (text): e.g., \texttt{bash: ls -la}.
+  \item \textbf{Observation 1} (short text, $<256$ tokens): directory listing, kept as-is.
+  \item \textbf{Action 2} (text): e.g., \texttt{str\_replace\_editor: view file.py}.
+  \item \textbf{Observation 2} (long text, $\geq 256$ tokens): entire file content, compressed into 256 memory tokens.
+  \item \textbf{Action 3} (text): e.g., \texttt{str\_replace\_editor: str\_replace ...}.
+  \item \textbf{Observation 3} (long text): edit confirmation with context, again compressed into memory tokens.
+  \item \textbf{Action 4} (text): e.g., \texttt{bash: pytest}.
+  \item \textbf{Observation 4} (short text): test results summary, kept as text.
+  \item \textbf{Action 5} (text): \texttt{submit}.
+  \item \textbf{End}.
+\end{enumerate}
+So, in this example, the encoder is applied 2 times (steps 7 and 9), while the decoder is applied 5 times (steps 3, 5, 7, 9, 11).
+At training time, each step's loss is computed independently: the model learns to predict \(a_k\) from the prefix ending at \(o_{k-1}\), where any long observation has already been replaced by its memory tokens.
+At inference time, the same replacement occurs dynamically, ensuring consistency between training and deployment.
+This design allows the model to handle arbitrarily long trajectories without exceeding context limits, as the effective history remains compact.
+
+On figure \ref{fig:ft_losses} you can notice the sudden drop of the loss.
+This is phenomenon found in \cite{PI}.
+It appears due to the modification of positional encodings for the memory tokens.
+We see the effect being the same as described by the authors.
+In our experiments, it only appers if we apply the positional encodings manipulations.
+
+\begin{figure}[hbt]
+  \centering
+  \includegraphics[width=0.9\textwidth]{graphs/ft_losses.png}
+  \caption{Fine-tuning loss curves}
+  \label{fig:ft_losses}
+\end{figure}
+
+\section{Key Metrics}
+We report several metrics to evaluate our approach.
+As a simple proxy metric, we measure token-wise accuracy—the fraction of generated tokens that match the reference trajectory.
+However, the most important metric is the number of successfully resolved issues on SWE-bench Verified, which directly reflects the model's ability to complete real-world software engineering tasks.
+We also measure mean tool-call generation time to assess computational performance.
+
+We note that measuring trajectory length is not particularly meaningful in our setting, as 8B-scale models frequently enter loops where they repeatedly call the same tool, artificially inflating trajectory length without making meaningful progress toward task completion.
+
+% I believe this is not needed? at lease for now
+%\subsection{Evaluation}
+%In deployment, the accumulated history (trajectory) is first passed to the encoder, which condenses it into memory slots. The decoder (Qwen3) then uses these memory slots, conditioned by the current task prompt, to generate the subsequent action or response. The outcome is that the model operates with a much shorter effective context, improving latency and reducing GPU memory costs during inference.
+%The final model is evaluated by deploying it to generate responses iteratively within the ICAE framework on the verified 500 subset of the SWE-bench Verified dataset.
+
 
 
 % ========================================
-% SECTION 4.3: INSTRUCTION FINE-TUNING FOR DOWNSTREAM TASKS
+% SECTION 4.5: CODE REPRODUCTION AND TESTING METHODOLOGY
 % ========================================
-\section{Instruction Fine-Tuning for Downstream Tasks}
+\section{Code Reproduction and Testing Methodology}
 
-After pretraining, the ICAE \cite{ge_-context_2024} is fine-tuned using instruction data to enhance the interaction between the memory slots and various prompts, enabling the target LLM to produce desirable responses.
-The fine-tuning loss aims to maximize the probability of generating the correct response conditioned on the memory slots and the prompt.
+\subsection{Code Reproducibility}
+We reimplemented the ICAE framework from scratch, as the original authors' code was outdated and difficult to adapt to our experimental needs.
+Our implementation is more modular and provides separate training pipelines for both pretraining (PT) and fine-tuning (FT).
+We support pretraining on general text datasets (such as SlimPajama) and fine-tuning on both question-answering tasks (SQuAD) and agentic trajectories (SWE-bench).
+We provide a link to our code repository\footnote{\url{https://github.com/JetBrains-Research/icae}} for transparency and reproducibility.
 
 
-% ========================================
-% SECTION 4.4: EXPERIMENTAL DATASETS AND CONFIGURATION
-% ========================================
-\section{Experimental Datasets and Configuration}
-
-General Text Data: The Pile dataset is used for pretraining.
-QA and Instruction Data: The PWC (Prompt-with-Context) dataset, consisting of thousands of (context, prompt, response) samples, is used for instruction fine-tuning and evaluation.
-SQuAD is used for offline quality measurement and fast debugging.
-Agentic Data: The SWE-bench Verified dataset is used to assess end-to-end performance on complex software engineering tasks, utilizing trajectories generated by a strong teacher model (e.g., GPT-5).
