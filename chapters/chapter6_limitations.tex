@@ -3,6 +3,8 @@
 % ========================================
 \chapter{Limitations and Future Work}
 
+\textbf{note: here I write "what can we not cover and how would you try to improve it in the future. e.g. only 256 tokens etc"}
+
 \section{Reframing the Goal: Feature Extraction vs. Compression}
 
 When developing a context condensation strategy, the definition of success must be carefully framed.
@@ -29,6 +31,8 @@ The methodology assumes that "all tokens in the context are equally important," 
 The non-robustness of the approach is constrained by the hardcoded number of memory tokens (e.g., 256 tokens in discussion), defining the limitation of the approach as fixed-length feature extraction.
 Experimental results confirm that improvement attenuates or fails at high compression ratios (e.g., beyond 15x or 31x).
 
+Hypotheses for the end-to-end performance degradation include Representation–behavior mismatch, where the compression perturbs the decoder's behavior necessary for tool use.
+Other factors include reconstruction quality falloff for specialized content like code files, and potential overfitting to labels demonstrated by high local accuracy but low resolved rates.
 
 % ========================================
 % SECTION 6.2: CONSTRAINTS ON MODEL SCALE

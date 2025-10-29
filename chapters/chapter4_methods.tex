@@ -3,6 +3,9 @@
 % ========================================
 \chapter{Methods}
 
+\textbf{note: here I write "what am i doing on top of other methods" I write it conceptually. if i need results maybe reference to the next chapter.}
+
+
 
 % ========================================
 % SECTION 4.1: CONCEPTUAL SETUP AND AGENTIC DATA ACQUISITION
@@ -62,6 +65,22 @@ Due to the nature of the ICAE framework, the compression produces a fixed number
 Applying the encoder to the shorter texts would be a waste of resources and would create a mismatch between the training and the validation settings.
 You can see the example of this in figure \ref{fig:ser1} and \ref{fig:ser2} from Chapter~\ref{chap:5}.
 
+The ICAE framework design turns a long, potentially unwieldy context into a compact representation that the decoder can efficiently consume, improving latency and memory footprint while preserving fidelity for downstream tasks. 
+The number of memory tokens controls the compression ratio (e.g., $4\times$ or higher), and the position-ID placement of these tokens influences how readily the decoder can access stored information (cf. Section~2.1) \cite{ge_-context_2024}.
+
+Beyond the high-level description, Figure~\ref{fig:icae} depicts the encoder–decoder split. 
+On the left, the encoder ingests the full context (e.g., a text) and produces a fixed number of memory tokens. 
+On the right, the frozen decoder receives these tokens and a tokens
+During pretraining, the encoder is optimized so that the decoder can reconstruct the original text and continue language modeling (50/50 chance of being used).
+During fine-tuning, the objective emphasizes answering prompts correctly given only the memory tokens and the task prompt.
+In practice, the encoder is frequently adapted with parameter-efficient methods such as LoRA \cite{hu2021lora}, whereas the decoder remains frozen to preserve the capabilities of the base model.
+\begin{figure}[hbt]
+  \centering
+  \includegraphics[width=0.8\textwidth]{graphs/icae.jpeg}
+  \caption{In-Context Autoencoder (ICAE) framework architecture}
+  \label{fig:icae}
+\end{figure}
+
 \subsection{Base Model Configuration (Qwen3)}
 We use the Qwen3 model family (specificaly Qwen3-8B) as the base LLM. 
 To make things simpler, we explicitly disable long-form "thinking" during decoding by inserting the token sequence \texttt{\textbackslash think \textbackslash think} with a newline marker (\texttt{\textbackslash n}) in between.
@@ -82,11 +101,12 @@ Our pretraining procedure follows the original ICAE formulation~\cite{ge_-contex
 We use two primary self-supervised objectives:
 \begin{enumerate}[label=(\roman*)]
     \item \textbf{Autoencoding (AE)}, where ICAE restores the original input text from its memory slots (prompted by a special token \texttt{[AE]}).
-    \item \textbf{Language Modeling (LM) / Text Continuation}, which predicts the continuation of the context (prompted without any special tokens) to improve generalization and prevent overfitting to the AE task.
+    \item \textbf{Language Modeling (LM)}, which predicts the continuation of the context (prompted without any special tokens) to improve generalization and prevent overfitting to the AE task.
 \end{enumerate}
 This pretraining was performed on the dataset SlimPajama-6B \cite{pajama6b}\footnote{\url{https://huggingface.co/datasets/DKYoon/SlimPajama-6B}}.
-It is a common text dataset, that is used for pretraining LLMs, consisting of 6 billion tokens (the first 10\% of the first 10\% of the original 627B tokens).
+It is a common text dataset, that is used for pretraining LLMs, consisting of 6 billion tokens (a random 1\% of the original 627B tokens).
 The dataset that authors used in their original paper "The Pile" was unavailable.
+
 It should be noted that only LoRA weights of the encoder are trained here (specifically only form Q and K matrices of the attention layers).
 So, in theory, we are training the encoder to encode the context into such embeddings, that the decoder will be able to reconstruct the original context from them or to continue the text from the context.
 
@@ -100,7 +120,7 @@ So, in theory, we are training the encoder to encode the context into such embed
 \subsection{Fine-Tuning (FT)}
 After pretraining, ICAE is fine-tuned using trajectories from SWE-bench Verified (the proccess of obtaining trajectories is described in Section~4.1.3).
 Here as well only the LoRA weights are trained.
-The fine-tuning objective maximizes the probability of generating the correct agent action (i.e. tool call) conditioned on the memory slots (if the encoder is pplied at the current step) and the previous history???
+The fine-tuning objective maximizes the probability of generating the correct agent action (i.e. tool call) conditioned on the memory slots (if the encoder is applied at the current step) and the previous history (???)
 
 It should be noted that the training is only applied to the encoder part, while the decoder is frozen.
 
@@ -128,6 +148,7 @@ For example, consider a trajectory:
   \item \textbf{End}.
 \end{enumerate}
 So, in this example, the encoder is applied 2 times (steps 7 and 9), while the decoder is applied 5 times (steps 3, 5, 7, 9, 11).
+
 At training time, each step's loss is computed independently: the model learns to predict \(a_k\) from the prefix ending at \(o_{k-1}\), where any long observation has already been replaced by its memory tokens.
 At inference time, the same replacement occurs dynamically, ensuring consistency between training and deployment.
 This design allows the model to handle arbitrarily long trajectories without exceeding context limits, as the effective history remains compact.
@@ -147,7 +168,7 @@ In our experiments, it only appers if we apply the positional encodings manipula
 
 \section{Key Metrics}
 We report several metrics to evaluate our approach.
-As a simple proxy metric, we measure token-wise accuracy—the fraction of generated tokens that match the reference trajectory.
+As a simple proxy metric, we measure token-wise accuracy —- averaged fraction of the guessed tokens that match the reference trajectory (note: this is measured with teacher forcing).
 However, the most important metric is the number of successfully resolved issues on SWE-bench Verified, which directly reflects the model's ability to complete real-world software engineering tasks.
 We also measure mean tool-call generation time to assess computational performance.
 

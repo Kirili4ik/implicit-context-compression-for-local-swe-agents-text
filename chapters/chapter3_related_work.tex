@@ -3,6 +3,8 @@
 % ========================================
 \chapter{Related Work}
 
+\textbf{note: here i write "what was previously done". see 3.4 for that}
+
 
 % ========================================
 % SECTION 3.1: ARCHITECTURAL APPROACHES FOR LONG CONTEXT MODELING
@@ -55,7 +57,7 @@ This may limit the utility of compressed representations, especially when critic
 
 Taken together, attention variants trade exactness for structure or approximation.
 Explicit compression trades completeness for selection.
-\textbf{TODO: this is bullshit but make a change to section 3./ we like implicit so we found ICAE---} --- Implicit compression trades human readability for decoder-optimized compact interfaces.
+\textbf{TODO: this is bullshit but make a change to section 4. we like implicit -> so we found ICAE---} --- Implicit compression trades human readability for decoder-optimized compact interfaces.
 
 % Insbesondere weisen wir auf den wunderbaren Artikel von \textcite{Edmonds:1965} und auf~\cite{GareyJohnson:1979} für weitere Hintergründe.
 
@@ -86,33 +88,20 @@ After processing an input, the final hidden state (or a structured set of latent
 Experiments show that directly reasoning in the model's own latent space improves downstream performance for tasks with extended, multi-step dependencies, outperforming classic chain-of-thought prompting.
 By discarding the constraints of discrete tokenization, CoConut demonstrates that agentic LLMs can reason, plan, and retain context in a fundamentally more expressive and compact way.
 
-These three directions form a coherent spectrum of implicit compression strategies.
-All focus on designing interfaces for decoder-optimized, compact context that can scale to long, complex tasks without being forced back into the limits of surface-level, human-readable summaries.
-
 
 % ========================================
 % SECTION 3.3: THE IN-CONTEXT AUTOENCODER (ICAE) FRAMEWORK
 % ========================================
 \section{The In-Context Autoencoder (ICAE) Framework}
 
+\textbf{TODO: I am very lost on where and how to write about ICAE. 
+I guess here should be none, but then I need smth to compare 3 ideas from 3.1?
+Then I also need ICAE in 4 and 5 somehow. Also 4.2 needs it but 4.3 is the same (expl. of AE vs LM for 50/50)}
+
 ICAE \cite{ge_-context_2024} is closely related to the above implicit compression paradigm.
 An encoder (often a LoRA-adapted copy of the base LLM) reads a long context and emits a small set of learnable \emph{memory tokens}.
 A frozen decoder (the base LLM) then conditions on these tokens plus the downstream prompt to generate outputs.
-Training combines the following objectives:
-\begin{itemize}
-  \item an autoencoding objective, prompting the decoder to reconstruct the original text from memory slots
-  \item a language modeling/continuation objective that teaches the decoder to answer queries conditioned on the slots and a prompt
-\end{itemize}
-This design turns a long, potentially unwieldy context into a compact representation that the decoder can efficiently consume, improving latency and memory footprint while preserving fidelity for downstream tasks. 
-The number of memory tokens controls the compression ratio (e.g., $4\times$ or higher), and the position-ID placement of these tokens influences how readily the decoder can access stored information (cf. Section~2.1) \cite{ge_-context_2024}.
 
-
-Beyond the high-level description, Figure~\ref{fig:icae} depicts the encoder–decoder split. 
-On the left, the encoder ingests the full context (e.g., a text) and produces a fixed number of memory tokens. 
-On the right, the frozen decoder receives these tokens and a tokens
-During pretraining, the encoder is optimized so that the decoder can reconstruct the original text and continue language modeling (50/50 chance of being used).
-During fine-tuning, the objective emphasizes answering prompts correctly given only the memory tokens and the task prompt.
-In practice, the encoder is frequently adapted with parameter-efficient methods such as LoRA \cite{hu2021lora}, whereas the decoder remains frozen to preserve the capabilities of the base model.
 
 ICAE differs from heuristic summarization in that the representation is optimized for decoder consumption rather than human readability.
 It also differs from sparse or windowed attention in that the decoder still operates with dense attention over a small set of memory tokens.
@@ -120,19 +109,10 @@ ICAE differs from explicit RAG in that no external retrieval is required at infe
 Compared to purely recurrent memory, ICAE offers direct, content-dependent access via attention over a small set of tokens.
 This avoids long chains through recurrent states.
 
-In the context of local software engineering agents, ICAE-style compression is particularly attractive: developer tooling yields verbose logs, test outputs, diffs, and compiler errors.
-Compact, learned memories can preserve salient facts (e.g., failing tests, stack traces, file paths, and prior fixes) while improving latency and GPU memory use.
-In later chapters we evaluate compression ratios around \(\sim\!1.5\text{--}2\times\) and analyze the accuracy–latency trade-offs compared to uncompressed baselines, as well as ablations that drop long or all observations to quantify the contribution of learned memory tokens.
-
-
-\begin{figure}[hbt]
-  \centering
-  \includegraphics[width=0.8\textwidth]{graphs/icae.jpeg}
-  \caption{In-Context Autoencoder (ICAE) framework architecture}
-  \label{fig:icae}
-\end{figure}
 
 
 \section{Some attempts to do the same thing?}
 
 Tobias' blogpost from openhands is not implicit, but explicit. so i have no knowledge of the same solutions using implicit compression?
+
+Should write here about the other solutions for our problem/dataset? but what are those?
