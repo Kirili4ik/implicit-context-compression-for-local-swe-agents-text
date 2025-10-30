@@ -5,26 +5,29 @@
 
 \textbf{note: here I write "very high level overview of the whole thesis"}
 
+\textbf{TODO: I'm not sure where to write this part so let it be here for a while:}
+
+\section{Why our approach did not work?} 
+Several factors may contribute to this performance degradation. One hypothesis is a representation-behavior mismatch, where the compression process perturbs the latent representations in a way that hinders the decoder's ability to perform tasks like tool use. Other contributing factors include a drop in reconstruction quality for specialized content, such as code, and potential overfitting to training labels, as suggested by high local accuracy but low overall task resolution rates.
+
+
 % ========================================
 % SECTION 7.1: SUMMARY OF ACHIEVEMENTS
 % ========================================
 \section{Summary of Achievements}
 
-The ICAE \cite{ge_-context_2024} framework successfully achieves context condensation/feature extraction for general text, demonstrating high reconstruction quality (BLEU $\approx 99\%$) and measurable efficiency gains (speedup 2× to 3.6×).
-The work provided insights into LLM memorization patterns, suggesting similarities to human memory encoding.
-
+Describe main results of main experiment (ICAE on SWE-bench Verified dataset).
 
 % ========================================
 % SECTION 7.2: SYNTHESIS OF FINDINGS
 % ========================================
 \section{Synthesis of Findings}
 
-Despite achieving efficiency and local accuracy on agent trajectories, the performance degradation in end-to-end task completion (resolved issues) highlights the critical gap between local context compression quality and robust decision-making in complex agentic settings.
-
+Describe the conclusions of all the findings (additional experiments)
 
 % ========================================
 % SECTION 7.3: POSITIONING THE WORK
 % ========================================
 \section{Positioning the Work}
 
-The findings position this work within the broader research efforts on LLM context management, emphasizing the experimental results concerning condensation effectiveness across different data types, and suggesting caution when applying general compression methods to fine-grained, critical agent behaviors (code and tool use).
+I plan to make a big analysis of this work and it's position in the field and add it here + probably a picture.

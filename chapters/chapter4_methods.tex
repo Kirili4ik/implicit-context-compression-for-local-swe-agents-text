@@ -166,7 +166,10 @@ In our experiments, it only appers if we apply the positional encodings manipula
   \label{fig:ft_losses}
 \end{figure}
 
-\section{Key Metrics}
+
+\section{Code Reproduction and Testing Methodology}
+
+\subsection{Key Metrics}
 We report several metrics to evaluate our approach.
 As a simple proxy metric, we measure token-wise accuracy —- averaged fraction of the guessed tokens that match the reference trajectory (note: this is measured with teacher forcing).
 However, the most important metric is the number of successfully resolved issues on SWE-bench Verified, which directly reflects the model's ability to complete real-world software engineering tasks.
@@ -178,13 +181,6 @@ We note that measuring trajectory length is not particularly meaningful in our s
 %\subsection{Evaluation}
 %In deployment, the accumulated history (trajectory) is first passed to the encoder, which condenses it into memory slots. The decoder (Qwen3) then uses these memory slots, conditioned by the current task prompt, to generate the subsequent action or response. The outcome is that the model operates with a much shorter effective context, improving latency and reducing GPU memory costs during inference.
 %The final model is evaluated by deploying it to generate responses iteratively within the ICAE framework on the verified 500 subset of the SWE-bench Verified dataset.
-
-
-
-% ========================================
-% SECTION 4.5: CODE REPRODUCTION AND TESTING METHODOLOGY
-% ========================================
-\section{Code Reproduction and Testing Methodology}
 
 \subsection{Code Reproducibility}
 We reimplemented the ICAE framework from scratch, as the original authors' code was outdated and difficult to adapt to our experimental needs.

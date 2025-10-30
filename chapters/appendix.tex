@@ -144,23 +144,13 @@ I \textbf{have not} used AI in order to create new experiments, nor for any goal
     \label{tab:finetune_config}
 \end{table}
 
+\subsection{Profiling Setup}
+
+All experiments were conducted on a single server equipped with an Intel processor and 1× NVIDIA H200 GPU. We utilized only one GPU for all training and evaluation tasks to ensure consistency across experiments.
+
 \subsection{Reproducibility Resources}
+To ensure full reproducibility, we provide our complete implementation\footnote{\url{https://github.com/JetBrains-Research/icae}}, full Weights \& Biases experiment logs for pretraining\footnote{\url{https://wandb.ai/kirili4ik/icae-pretraining}} and fine-tuning\footnote{\url{https://wandb.ai/kirili4ik/icae-swebench-finetune}}, and model checkpoints\footnote{\textbf{TODO}}\footnote{\textbf{TODO}}.
 
-To ensure full reproducibility, we publish our complete implementation including:
-\begin{itemize}
-    \item Complete ICAE framework for both pretraining and fine-tuning phases (\url{https://github.com/JetBrains-Research/icae})
-    \item Full Weights \& Biases experiment logs for pretraining: \url{https://wandb.ai/kirili4ik/icae-pretraining}
-    \item Full Weights \& Biases experiment logs for fine-tuning: \url{https://wandb.ai/kirili4ik/icae-swebench-finetune}
-    \item Pretrained model checkpoints achieving 95\% reconstruction BLEU: TODO
-    \item Fine-tuned models that outperform uncompressed baselines on SQuAD: TODO
-\end{itemize}
+\textbf{TODO: 4 is Pretrained model checkpoints achieving 95\% reconstruction BLEU:}
 
-
-\section{Profiling Setup and Latency Measurement}
-
-Technical details of the test machine and runtime configuration used for latency measurements.
-
-
-\section{Additional Tables}
-
-Comprehensive tables of model performance, including token-wise accuracy, mean tool-call time, and resolved issues for various ICAE \cite{ge_-context_2024} variants (e.g., Qwen-LoRA-FT, ICAE (Qwen-LoRA-FT) Qwen).
+\textbf{TODO: 5 is Fine-tuned models that outperform uncompressed baselines on SQuAD:}

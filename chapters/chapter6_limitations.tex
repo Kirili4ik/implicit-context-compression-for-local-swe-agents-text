@@ -5,56 +5,36 @@
 
 \textbf{note: here I write "what can we not cover and how would you try to improve it in the future. e.g. only 256 tokens etc"}
 
-\section{Reframing the Goal: Feature Extraction vs. Compression}
+\section{Limitations of Fixed-Length Context Condensation}
 
-When developing a context condensation strategy, the definition of success must be carefully framed.
-The approach investigated utilizes the In-context Autoencoder (ICAE) \cite{ge_-context_2024}, which leverages the power of an LLM to compress a long context into short compact memory slots that can be directly conditioned upon by the decoder LLM.
+A core methodological limitation of the investigated approach is its reliance on a fixed number of memory tokens (e.g., 256) for context condensation. This design choice imposes a hardcoded, fixed compression ratio. For instance, a model configured with 256 memory tokens and a 4x compression ratio can only process a maximum of 1024 tokens of context at once. For longer inputs, such as an observation of 10,000 tokens, the condensation process would need to be applied iteratively in a loop. This would likely be slow and undermine the efficiency gains of the approach.
 
-However, the approach should be redefined not merely as "compression," which often implies a robust, high-ratio data reduction, but rather as "summarization" or "fixed length feature extraction," due to a core methodological constraint.
-This constraint arises from the hardcoded, non-robust nature of the intended output length (e.g., aiming for 256 tokens in general discussion).
-
-This reframing is critical because lossless compression typically struggles to achieve ratios exceeding $10\times$.
-Under high compression ratios (lossy compression), the assumption that "all tokens in the context are equally important"—an assumption intrinsically aligned with lossless autoencoding training—is violated.
-When the information carrier capacity is limited, the compression mechanism should ideally focus only on the most important tokens, which conflicts with the uniform coverage implied by fixed-length encoding.
-
-The fundamental mechanism supporting this goal is the relative density of different representation spaces.
-The latent space of embeddings is "much denser than the discrete space of tokens," which is the underlying justification for learning context condensation.
-Therefore, the thesis investigates how condensing environment observations (which contain irrelevant or redundant information) into continuous representations (embeddings/memory slots) affects agent performance and efficiency when addressing the context length challenge.
+This fixed-length strategy is based on the assumption that all tokens in the context are equally important, which aligns with lossless autoencoding. However, this assumption becomes problematic at the high, lossy compression ratios required for significant context reduction. Experimental results confirm that performance attenuates or fails at high compression ratios (e.g., beyond 15x or 31x).
 
 
-% ========================================
-% SECTION 6.1: LIMITATIONS OF FIXED-LENGTH COMPRESSION
-% ========================================
-\section{Limitations of Fixed-Length Compression}
+\section{Limitations of KV-caching}
+A notable limitation of our experimental setup is the exclusion of Key-Value (KV) caching, a standard optimization for autoregressive inference in Transformer models.
+For methodological simplicity and to isolate the effects of context compression, in our experiments we recomputed the full attention state at each decoding step.
 
-The methodology assumes that "all tokens in the context are equally important," aligning intrinsically with lossless compression (autoencoding), which becomes problematic under high compression ratios (lossy compression).
-The non-robustness of the approach is constrained by the hardcoded number of memory tokens (e.g., 256 tokens in discussion), defining the limitation of the approach as fixed-length feature extraction.
-Experimental results confirm that improvement attenuates or fails at high compression ratios (e.g., beyond 15x or 31x).
+However, the ICAE framework is fully compatible with KV-caching.
+The continuous embeddings produced by the encoder can be treated as a fixed prefix, and their corresponding key-value states can be pre-computed and cached.
+Subsequent token generation would then reuse these cached states, significantly improving the absolute speed of the decoding process.
+While KV-caching is essential for production deployment to achieve practical inference speeds, it was not necessary for our comparative evaluation.
 
-Hypotheses for the end-to-end performance degradation include Representation–behavior mismatch, where the compression perturbs the decoder's behavior necessary for tool use.
-Other factors include reconstruction quality falloff for specialized content like code files, and potential overfitting to labels demonstrated by high local accuracy but low resolved rates.
+\section{Constraints on Computational Resources}
 
-% ========================================
-% SECTION 6.2: CONSTRAINTS ON MODEL SCALE
-% ========================================
-\section{Constraints on Model Scale}
+\subsection{Model Scale}
+Due to computational and time constraints, our experiments were confined to the Qwen3-8B model. While evaluating on the full 500-issue SWE-bench Verified dataset provides sufficient statistical power for robust comparisons at this scale, an important direction for future research is to investigate ICAE's effectiveness on larger models like Qwen3-32B. It remains an open question whether larger models, with their increased capacity, can better leverage compressed representations or if they are more sensitive to information loss during compression.
 
-Due to computational limitations, experiments were mainly conducted on Llama models up to 13 billion parameters.
+\subsection{Full Fine-Tuning}
+Our experiments with ICAE exclusively utilized LoRA for parameter-efficient fine-tuning, consistent with the original work. However, our baseline experiments revealed that a fully fine-tuned Qwen3-8B model significantly outperforms its LoRA-tuned counterpart, establishing a high-performance upper bound (resolving 86 vs. 10 issues on SWE-bench). Although the original ICAE authors did not explore full fine-tuning, this result suggests that applying full fine-tuning to the ICAE encoder could yield substantial benefits in a complex agentic setting. Our open-sourced codebase is designed to facilitate such experiments, and we encourage future work to explore this promising direction, time and resources permitting.
+
+\subsection{Reasoning Enabled}
+For methodological simplicity, we disabled the Qwen3 model's "thinking" mechanism, which is designed to improve performance on complex reasoning tasks. Enabling this feature could prove highly beneficial, as it might allow the model to iteratively reason over the compressed knowledge stored in memory slots, potentially leading to better decision-making. Given that chain-of-thought reasoning has been shown to dramatically improve performance on various benchmarks, exploring the interaction between compressed context and explicit reasoning steps is a critical avenue for future research.
 
 
-% ========================================
-% SECTION 6.3: OUTLOOK FOR FUTURE RESEARCH
-% ========================================
-\section{Outlook for Future Research}
-
-Future work should explore validating the ICAE \cite{ge_-context_2024} effectiveness on larger and stronger LLMs, as performance is expected to benefit more from more powerful target models.
-Potential extension to multimodal LLMs (images, video, audio) is suggested, as these modalities have greater compression potential.
-
-\subsection{Open Source Contributions and Reproducibility}
+\section{Open Source Contributions and Reproducibility}
 
 To advance the field of context compression for software engineering agents, we release our complete implementation, including pretrained models achieving 95\% reconstruction BLEU and fine-tuned models that outperform uncompressed baselines on SQuAD. Our comprehensive release includes all training configurations, hyperparameters, and experiment logs, enabling future researchers to reproduce our results and build upon this work.
 
 The open-source nature of this contribution addresses the reproducibility crisis in machine learning research, providing both the tools and transparency necessary for scientific progress in context management for LLM agents. All code, model checkpoints, and experiment logs are available at the project repository, with full Weights \& Biases experiment tracking for both pretraining and fine-tuning phases.
-
-
-\section{Caching would not ever work with our approach? Or would it?}
