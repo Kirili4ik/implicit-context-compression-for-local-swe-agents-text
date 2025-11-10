@@ -85,6 +85,99 @@ I \textbf{have not} used AI in order to create new experiments, nor for any goal
   \end{Verbatim}
   \end{tcolorbox}
 
+\section{SWE-smith First User Message}
+\label{app:swe-smith-first-user-message}
+
+\begin{tcolorbox}[title={SWE-smith First User Message},
+    colback=white, colframe=black, fonttitle=\bfseries,
+    breakable, sharp corners=south, enhanced jigsaw]
+    \begin{Verbatim}[breaklines=true, obeytabs=false,breaksymbol={},breakindent=0pt,fontsize=\tiny]
+<|im_start|>user
+<uploaded_files>
+<repo_path>*
+</uploaded_files>
+I've uploaded a python code repository in the directory /mnt/shared-fs/gelvan/swe-agent-distillation. Consider the following PR description:
+
+<pr_description>
+<issue_description>*
+</pr_description>
+
+Can you help me implement the necessary changes to the repository so that the requirements specified in the <pr_description> are met?
+I've already taken care of all changes to any of the test files described in the <pr_description>. This means you DON'T have to modify the testing logic or any of the tests in any way!
+Your task is to make the minimal changes to non-tests files in the /mnt/shared-fs/gelvan/swe-agent-distillation directory to ensure the <pr_description> is satisfied.
+Follow these steps to resolve the issue:
+1. As a first step, it might be a good idea to find and read code relevant to the <pr_description>
+2. Create a script to reproduce the error and execute it with `python <filename.py>` using the bash tool, to confirm the error
+3. Edit the source code of the repo to resolve the issue
+4. Rerun your reproduce script and confirm that the error is fixed!
+5. Think about edgecases and make sure your fix handles them as well
+Your thinking should be thorough and so it's fine if it's very long.<|im_end|>
+  \end{Verbatim}
+\end{tcolorbox}
+*\texttt{<issue\_description>} is replaced with the specific problem description for each SWE-bench task.
+*\texttt{<repo\_path>} is replaced with the path to the repository.
+
+  
+
+  
+\section{ICAE In-Context Ability Proof-of-Concept}
+\label{app:icae-proof}
+
+\begin{tcolorbox}[title={ICAE Proof-of-Concept Example},
+    colback=white, colframe=black, fonttitle=\bfseries,
+    breakable, sharp corners=south, enhanced jigsaw]
+  \begin{Verbatim}[breaklines=true, obeytabs=false,breaksymbol={},breakindent=0pt,fontsize=\tiny,commandchars=\\\{\}]
+<|im_start|>system
+<system_prompt>*
+<|im_end|>
+
+<|im_start|>user
+<uploaded_files>
+/mnt/shared-fs/gelvan/swe-agent-distillation
+</uploaded_files>
+I've uploaded a python code repository in the directory /mnt/shared-fs/gelvan/swe-agent-distillation. Consider the following PR description:
+<pr_description>
+\colorbox{yellow}{Your task is to read file README.md and run the commands that are presented in that file for the setup. when i run them i get errors.}
+</pr_description>
+<fixed_part_of_the_first_user_message>*<|im_end|>
+
+<|im_start|>assistant
+$ str_replace_editor --command view --path /mnt/shared-fs/gelvan/swe-agent-distillation/README.md<|im_end|>
+
+<|im_start|>user
+\colorbox{yellow}{<MEMORY_TOKEN> x 512}<|im_end|>
+
+<|im_start|>assistant
+$ cat /mnt/shared-fs/gelvan/swe-agent-distillation/requirements.txt<|im_end|>
+
+<|im_start|>user
+There is no file named requirements.txt<|im_end|>
+
+<|im_start|>assistant
+$ str_replace_editor --command view --path /mnt/shared-fs/gelvan/swe-agent-distillation<|im_end|>
+
+<|im_start|>user
+You have no access to this directory.<|im_end|>
+
+<|im_start|>assistant
+$ ls -la /mnt/shared-fs/gelvan/swe-agent-distillation<|im_end|>
+
+<|im_start|>user
+You have no access to this directory. You have to call a command from README.md to install.<|im_end|>
+
+<|im_start|>assistant
+$ str_replace_editor --command view --path /mnt/shared-fs/gelvan/swe-agent-distillation/README.md<|im_end|>
+
+<|im_start|>user
+\colorbox{yellow}{<MEMORY_TOKEN> x 512}<|im_end|>
+
+<|im_start|>assistant
+\colorbox{yellow}{$ cat /mnt/shared-fs/gelvan/swe-agent-distillation/.my_secret_requirements.txt}<|im_end|>
+  \end{Verbatim}
+\end{tcolorbox}
+This example demonstrates a hand-crafted scenario, closely related to SWE-bench, designed to test the model's ability to comprehend and utilize decompressed data from its memory. The highlighted part shows the model successfully identifying a hidden requirements file by using the context provided in its compressed memory.
+*\texttt{<system\_prompt>} is from Section~\ref{sec:swebench_system_prompt}.
+
 \section{Training Details and Hyperparameters}
 \label{app:training_details}
 
@@ -104,7 +197,8 @@ I \textbf{have not} used AI in order to create new experiments, nor for any goal
         Gradient Accumulation & 8 \\
         Training Steps & $\approx$100,000 \\
         Memory Size & 256 tokens (4× compression) \\
-        LoRA Rank & 128 \\
+        LoRA $r$ & 128 \\
+        LoRA $\alpha$ & 32 \\
         LoRA Target Modules & q\_proj, v\_proj \\
         Optimizer & AdamW \\
         Warmup Steps & 300 \\
@@ -132,7 +226,8 @@ I \textbf{have not} used AI in order to create new experiments, nor for any goal
         Gradient Accumulation & 1 \\
         Training Steps & $\approx$150,000 \\
         Memory Size & 256 tokens (4× compression) \\
-        LoRA Rank & 128 \\
+        LoRA $r$ & 128 \\
+        LoRA $\alpha$ & 32 \\
         LoRA Target Modules & q\_proj, v\_proj \\
         Optimizer & AdamW \\
         Warmup Steps & 250 \\

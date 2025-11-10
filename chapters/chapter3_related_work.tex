@@ -3,7 +3,7 @@
 % ========================================
 \chapter{Related Work}
 
-\textbf{note: here i write "what was previously done". see 3.4 for that}
+\textbf{note: here i write "what was previously done". We write here "concrete: paper-what-is-the-difference".}
 
 
 % ========================================
@@ -11,62 +11,13 @@
 % ========================================
 \section{Architectural Approaches for Long Context Modeling}
 
-Long-context modeling must address the quadratic cost of vanilla self-attention \cite{vaswani_attention_2017} while preserving task-relevant dependencies over thousands of tokens.
-
-A useful taxonomy distinguishes:
-\begin{itemize}
-    \item attention variants that alter the attention operator itself;
-    \item explicit compression methods that reduce the input via retrieval or summarization;
-    \item implicit compression methods that learn compact, decoder-friendly representations without exposing full inputs during inference.
-\end{itemize}
-
-We briefly review each group and summarize advantages and limitations.
-
-\paragraph{Attention variants.}
-Sparse and local/windowed patterns reduce pairwise interactions to achieve sub-quadratic cost.
-Windowed attention restricts each token to a fixed neighborhood and optionally augments a small set of global tokens to propagate long-range information.
-Longformer combines sliding windows with learnable global tokens for long documents \cite{beltagy_longformer_2020}.
-Block- and mixed-sparsity patterns (e.g., banded + random) as in BigBird provide theoretical expressivity and empirical gains on long sequences \cite{zaheer_bigbird_2020}.
-Sparse Transformers \cite{child_sparse_2019} introduced fixed sparse patterns for scalable generation.
-Advantages include improved memory/computation and strong local modeling.
-Disadvantages include potential failures to route cross-window interactions when global tokens or connectivity patterns are insufficient, and hardware inefficiencies for irregular sparsity.
-
-Linear-time approximations further change the attention operator.
-Kernelized attention (Transformers-as-RNNs) linearizes softmax attention for autoregressive decoding \cite{katharopoulos_transformers_2020}.
-Linformer projects keys/values along sequence length to attain linear complexity \cite{wang_linformer_2020}.
-These methods offer asymptotic gains and longer feasible contexts.
-However, they can underperform full attention on tasks requiring precise long-range interactions or exact softmax geometry.
-They also introduce approximation/projection hyperparameters that affect quality.
-
-\paragraph{Explicit compression.}
-Retrieval-augmented generation (RAG) or summarization-based pipelines reduce the effective input by selecting or rewriting content before decoding.
-RAG retrieves top-$k$ passages from an external corpus and conditions generation on them.
-This approach improves knowledge-intensive tasks while decoupling parametric and non-parametric knowledge \cite{lewis_rag_2020}.
-Abstractive summarization pre-compresses long inputs into concise proxies (e.g., PEGASUS pretraining with gap-sentence objectives) \cite{zhang_pegasus_2020}.
-Benefits include controllable compute and access to external knowledge.
-Drawbacks include selection bias, retrieval latency, brittleness to retrieval errors, and potential loss of details critical for downstream reasoning.
-
-\paragraph{Implicit compression.}
-Here, the idea is to produce task-adapted representations (often embeddings) that a model uses during inference, rather than the input itself.
-Examples include learned soft/prefix prompts for steering frozen decoders \cite{li_prefix_2021,lester_prompt_2021}.
-Other examples include tokenized memories trained to preserve answer-relevant information.
-Implicit methods maintain a tight interface to the model.
-They can reduce latency and memory without external retrieval.
-A key challenge of implicit compression is that, by condensing input into a compact intermediate representation, some information may inevitably be lost and cannot be recovered with perfect fidelity. 
-This may limit the utility of compressed representations, especially when critical details are omitted during the compression process.
-
-Taken together, attention variants trade exactness for structure or approximation.
-Explicit compression trades completeness for selection.
-\textbf{TODO: this is bullshit but make a change to section 4. we like implicit -> so we found ICAE---} --- Implicit compression trades human readability for decoder-optimized compact interfaces.
-
-% Insbesondere weisen wir auf den wunderbaren Artikel von \textcite{Edmonds:1965} und auf~\cite{GareyJohnson:1979} für weitere Hintergründe.
-
 
 % ========================================
 % SECTION 3.2: SOFT PROMPTING, CONTEXT DISTILLATION, AND CONTINUOUS-THOUGHT REPRESENTATIONS
 % ========================================
 \section{Soft Prompting, Context Distillation, and Continuous-Thought Representations}
 
+\subsection{CoCoNut +-}
 Soft prompting is a method for conditioning large language models by learning continuous prompt vectors or prefix tokens rather than discrete text. 
 These learned vectors are typically prepended to the model's input sequence and serve as a compact, trainable interface for adapting frozen decoders.
 Classic methods in this category include prefix-tuning \cite{li_prefix_2021} and prompt tuning \cite{lester_prompt_2021}.
@@ -89,29 +40,8 @@ Experiments show that directly reasoning in the model's own latent space improve
 By discarding the constraints of discrete tokenization, CoConut demonstrates that agentic LLMs can reason, plan, and retain context in a fundamentally more expressive and compact way.
 
 
-% ========================================
-% SECTION 3.3: THE IN-CONTEXT AUTOENCODER (ICAE) FRAMEWORK
-% ========================================
-\section{The In-Context Autoencoder (ICAE) Framework}
 
-\textbf{TODO: I am very lost on where and how to write about ICAE. 
-I guess here should be none, but then I need smth to compare 3 ideas from 3.1?
-Then I also need ICAE in 4 and 5 somehow. Also 4.2 needs it but 4.3 is the same (expl. of AE vs LM for 50/50)}
-
-ICAE \cite{ge_-context_2024} is closely related to the above implicit compression paradigm.
-An encoder (often a LoRA-adapted copy of the base LLM) reads a long context and emits a small set of learnable \emph{memory tokens}.
-A frozen decoder (the base LLM) then conditions on these tokens plus the downstream prompt to generate outputs.
-
-
-ICAE differs from heuristic summarization in that the representation is optimized for decoder consumption rather than human readability.
-It also differs from sparse or windowed attention in that the decoder still operates with dense attention over a small set of memory tokens.
-ICAE differs from explicit RAG in that no external retrieval is required at inference \cite{beltagy_longformer_2020,zaheer_bigbird_2020,lewis_rag_2020}.
-Compared to purely recurrent memory, ICAE offers direct, content-dependent access via attention over a small set of tokens.
-This avoids long chains through recurrent states.
-
-
-
-\section{Some attempts to do the same thing?}
+\section{Some attempts to do similar things like coconut or tobiases blogpost??}
 
 \textbf{TODO: make a proper literature review..?}
 
