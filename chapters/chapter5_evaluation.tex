@@ -1,0 +1,50 @@
+\chapter{Evaluation}
+\label{cha:evaluation}
+
+\section{Datasets}
+\label{sec:datasets}
+
+\subsection{SWE-bench}
+We have chosen to use the SWE-bench \cite{jimenez2024swebench} dataset for our experiments.
+It is a well known dataset for evaluating the performance of SWE agents.
+It contains a large number of SWE tasks, each with a set of instructions and a set of expected outputs.
+They were collected from real life GitHub issues. 
+We have chosen to work with a subset -- SWE-bench Verified \cite{swebench-verified}.
+It is a subset of the SWE-bench dataset that contains only the tasks that have been verified to be correct.
+
+\subsection{Agentic Trajectories as Data}
+We treat sequential action--observation interactions (trajectories) as training data.
+These trajectories were obtained using a strong teacher model (e.g., Claude Sonnet 3.7) on the SWE-bench Verified dataset to produce high-quality inputs suitable for futher training.
+The setup for generating these trajectories follows the SWE-smith setup closely\cite{swe-smith}.
+
+\subsection{SQuAD}
+The Stanford Question Answering Dataset (SQuAD) is a widely used reading comprehension dataset, consisting of questions posed by crowdworkers on a set of Wikipedia articles, where the answer to every question is a segment of text, or span, from the corresponding reading passage.
+wriote here shortly about https://arxiv.org/pdf/1806.03822
+
+\subsection{RepoQA \cite{liu2024repoqa}}
+RepoQA \cite{liu2024repoqa} is a benchmark designed to evaluate a model's ability to understand and reason about code at the repository level.
+Unlike traditional code-related tasks that focus on standalone snippets, RepoQA requires a holistic understanding of entire codebases to answer questions.
+The dataset consists of question-answer pairs grounded in real-world open-source repositories, covering a wide range of topics from API usage to intricate implementation details.
+This makes it an ideal benchmark for testing the limits of our ICAE model, as it assesses the ability to compress and retrieve high-fidelity information from long, structured, and semantically dense code contexts.
+
+\section{Quality Metrics}
+\label{sec:quality_metrics}
+
+\subsection{Some Quality Metrics}
+We report several metrics to evaluate our approach.
+As a simple proxy metric, we measure token-wise accuracy —- averaged fraction of the guessed tokens that match the reference trajectory (note: this is measured with teacher forcing).
+However, the most important metric is the number of successfully resolved issues on SWE-bench Verified, which directly reflects the model's ability to complete real-world software engineering tasks.
+We also measure mean tool-call generation time to assess computational performance.
+
+We note that measuring trajectory length is not particularly meaningful in our setting, as 8B-scale models frequently enter loops where they repeatedly call the same tool, artificially inflating trajectory length without making meaningful progress toward task completion.
+
+write here about autoregressive accuracy and tha it is in a way better than token-wise teacher forced accuracy (in teacher forcing its about 90 and in autoregressive its about 10 so its like closer to reality)
+
+\subsection{BLEU Score}
+The Bilingual Evaluation Understudy (BLEU) score is a metric for evaluating the quality of text which has been machine-translated from one natural language to another.
+BLEU's output is always a number between 0 and 1. This value indicates how similar the candidate text is to the reference texts, with values closer to 1 representing more similar texts.
+It was one of the first metrics to claim a high correlation with human judgements of quality, and remains one of the most popular automated and inexpensive metrics.
+
+In our context, we use the BLEU score to evaluate the quality of the reconstructed text after compression and decompression by the ICAE model.
+A high BLEU score indicates that the reconstructed text is very similar to the original text, which means that the compression is nearly lossless.
+This is particularly important for code, where even small changes can alter the semantics of the program.
