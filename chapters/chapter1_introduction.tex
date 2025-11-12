@@ -33,6 +33,11 @@ Sparse attention patterns can fail to properly route information across distant 
 Additionally, irregular sparsity patterns often lead to hardware inefficiencies, as modern accelerators are optimized for dense operations.
 Most critically, these architectural innovations struggle to overcome a notable decline in performance on long contexts, as they may fail to capture critical long-range dependencies that full attention would preserve.
 
+A more recent line of research explores architectures that, while related to Transformers, offer fundamentally different scaling properties.
+Recent work has highlighted the duality between Transformers and State Space Models (SSMs) \cite{gu2021efficiently}, a class of models inspired by control theory that can be viewed as a form of recurrent neural network (RNN) \cite{dao2024transformers}.
+Architectures like Mamba-2, which builds on this duality, have demonstrated performance competitive with state-of-the-art Transformers on language modeling tasks, especially for very long sequences (e.g., beyond 32,000 tokens), while being significantly faster during inference.
+This direction suggests that the future of long-context modeling may lie in hybrid architectures or even a return to modernized recurrent models that avoid the quadratic bottleneck of self-attention.
+
 \paragraph{Extended Context Windows.}
 A more direct approach is to leverage newer models that are architecturally designed for very long contexts, often extending to one or two million tokens.
 Many of these models utilize advancements like Rotary Position Embeddings (RoPE) \cite{su_roformer_2021} to better handle long-range dependencies.
@@ -42,7 +47,8 @@ Furthermore, models with large context windows can suffer from the "lost in the 
 
 \paragraph{Explicit Compression.}
 Another approach is to explicitly compress the context before it is fed to the LLM.
-This can be done through methods like retrieval-augmented generation (RAG), which selects relevant passages from a larger corpus \cite{lewis_rag_2020}, or abstractive summarization, which generates a condensed version of the input text \cite{zhang_pegasus_2020}.
+This can be done through methods like retrieval-augmented generation (RAG), which selects relevant passages from a larger corpus \cite{lewis_rag_2020}.
+A prominent example is the Retrieval-Enhanced Transformer (RETRO), which conditions on retrieved documents to significantly improve language modeling performance \cite{borgeaud2022retro}.
 The main advantage is a controllable computational cost and the ability to incorporate external knowledge.
 However, these methods can suffer from selection bias, retrieval errors, and the potential loss of crucial details during the summarization or retrieval process, which can be harmful for downstream tasks that require high fidelity (e.g., code-related tasks).
 
