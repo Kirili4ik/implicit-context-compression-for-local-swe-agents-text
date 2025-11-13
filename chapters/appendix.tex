@@ -15,6 +15,8 @@ I \textbf{have not} used AI in order to create new experiments, nor for any goal
 \section{SWE-smith Prompt}
 \label{app:swe-smith-prompt}
 
+The following prompt is from the SWE-smith paper \cite{yang2025swesmith}.
+
 \begin{tcolorbox}[title={SWE-smith Prompt},
     colback=white, colframe=black, fonttitle=\bfseries,
     breakable, sharp corners=south, enhanced jigsaw]
@@ -237,6 +239,25 @@ This example demonstrates a hand-crafted scenario, closely related to SWE-bench,
     \end{tabular}
     \caption{Fine-tuning hyperparameters and configuration}
     \label{tab:finetune_config}
+\end{table}
+
+\subsection{SWE-bench Inference Configuration}
+
+\begin{table}[h]
+    \centering
+    \small
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Parameter} & \textbf{Value} \\
+        \midrule
+        Dataset & SWE-bench Verified\\
+        Temperature & 0.0 \\
+        Per-instance Call Limit & 75 \\
+        Max Input Tokens & 32768 \\
+        \bottomrule
+    \end{tabular}
+    \caption{SWE-bench inference configuration}
+    \label{tab:inference_config}
 \end{table}
 
 \subsection{Profiling Setup}

@@ -60,17 +60,20 @@ These results, together with the implementation schematics in Fig.~\ref{fig:ser1
 \end{table}
 
 \begin{figure}[hbt]
-  \centering
-  \includegraphics[width=0.5\textwidth]{graphs/ser1.jpeg}
-  \caption{Visualization of the "without training" approach, p1}
-  \label{fig:ser1}
-\end{figure}
-
-\begin{figure}[hbt]
-  \centering
-  \includegraphics[width=0.3\textwidth]{graphs/ser2.jpeg}
-  \caption{Visualization of the "without training" approach, p2}
-  \label{fig:ser2}
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{graphs/ser1.jpeg}
+        \caption{Visualization of the "without training" approach, p1}
+        \label{fig:ser1}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{graphs/ser2.jpeg}
+        \caption{Visualization of the "without training" approach, p2}
+        \label{fig:ser2}
+    \end{subfigure}
+    \caption{Visualization of the "without training" approach.}
+    \label{fig:ser_combined}
 \end{figure}
 
 
@@ -105,14 +108,24 @@ These designs follow the "trainable averaging" schematics shown on \ref{fig:step
 \paragraph{Training protocol and results}
 All experiments used the SQuAD \cite{squad} "context-embed" setting from \S5.1, keeping Qwen3-8B frozen and training only the projection parameters via token-level cross-entropy on answer continuations.
 After verifying the pipeline on a single batch, we trained on SQuAD train and evaluated on validation.
-Across linear, MLP, and BERT projections, models quickly overfit but did not generalize: validation loss flattened after early improvement (\ref{fig:losses_squad_1}), and EM/F1 remained well below the hard-token baseline, never closing the large gap to the no-compression control (e.g., the $\sim 50\%$--$80\%$ relative F1 drop visible for averaging).
+Across linear, MLP, and BERT projections, models quickly overfit but did not generalize: validation loss flattened after early improvement (see Figure~\ref{fig:squad_metrics}), and EM/F1 remained well below the hard-token baseline, never closing the large gap to the no-compression control (e.g., the $\sim 50\%$--$80\%$ relative F1 drop visible for averaging).
 
 \begin{figure}[hbt]
-  \centering
-  \includegraphics[width=0.5\textwidth]{graphs/losses_squad_1.jpg}
-  \caption{Validation loss curves for the SQuAD generalization experiment using linear, MLP and BERT}
-  \label{fig:losses_squad_1}
-\end{figure}  
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{graphs/squad_val_loss.pdf}
+        \caption{SQuAD Validation Loss}
+        \label{fig:squad_val_loss}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{graphs/squad_f1_score.pdf}
+        \caption{SQuAD F1 Score}
+        \label{fig:squad_f1_score}
+    \end{subfigure}
+    \caption{Validation loss and F1 score curves for the SQuAD generalization experiment.}
+    \label{fig:squad_metrics}
+\end{figure}
 
 
 \paragraph{Ablation studies}
@@ -264,6 +277,7 @@ This result is quite unexpected: compression typically implies information loss,
 We hypothesize that this advantage stems from the compression mechanism's ability to filter and retain only the most importnat information from the context, effectively introducing a beneficial inductive bias.
 This might help the model focus on task-relevant features while discarding noise or redundant details.
 
+
 Moreover, the ICAE model fine-tuned on PWC exhibits notably lower performance than all other configurations, achieving F1 and EM scores of 57 and 41 respectively.
 This result indicates that the PWC-fine-tuned model fails to generalize effectively to the SQuAD evaluation distribution, despite achieving strong performance on its training domain.
 This performance gap suggests potential overfitting to the specific characteristics of the PWC dataset, which may have properties that do not transfer well to standard question answering benchmarks.
@@ -271,10 +285,35 @@ This performance gap suggests potential overfitting to the specific characterist
 These results provide encouraging evidence for the viability of applying ICAE-based compression to downstream tasks beyond the original evaluation domain.
 The strong performance on SQuAD, combined with the observed compression benefits, motivated our subsequent investigation of the ICAE framework in more complex, agentic settings where context length presents significant computational challenges.
 
+
+\begin{figure}[hbt]
+  \centering
+  \includegraphics[width=0.8\textwidth]{graphs/bleu_squad.pdf}
+  \caption{BLEU scores on SQuAD}
+  \label{fig:bleu_squad}
+\end{figure}
+
 \section{Checking code data with RepoQA dataset \cite{liu2024repoqa}}
 To further assess the capabilities of our ICAE model, particularly its ability to handle long, structured, and highly technical contexts, we evaluated it on the RepoQA dataset \cite{liu2024repoqa}.
 This experiment was designed to test the hypothesis that ICAE can effectively compress entire code repositories while preserving the granular details necessary for complex reasoning and question answering about the code.
 Given that software development tasks often require a deep understanding of a large codebase, this evaluation serves as a critical stress test for our context compression approach.
+
+\begin{figure}[hbt]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{graphs/repoqa_val_loss.pdf}
+        \caption{RepoQA Validation Loss}
+        \label{fig:repoqa_val_loss}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{graphs/bleu_repoqa.pdf}
+        \caption{BLEU scores on RepoQA}
+        \label{fig:bleu_repoqa}
+    \end{subfigure}
+    \caption{RepoQA evaluation metrics.}
+    \label{fig:repoqa_metrics}
+\end{figure}
 
 \section{[Very main part?] ICAE Fine-Tuning and Evaluation on SWE-bench Verified}
 
@@ -314,31 +353,24 @@ In our experiments, it only appers if we apply the positional encodings manipula
 
 \begin{figure}[hbt]
   \centering
-  \includegraphics[width=0.9\textwidth]{graphs/ft_losses.png}
-  \caption{Fine-tuning loss curves}
-  \label{fig:ft_losses}
+  \begin{subfigure}[b]{0.49\textwidth}
+      \includegraphics[width=\textwidth]{graphs/pretraining_loss_final.pdf}
+      \caption{Evaluation Loss}
+      \label{fig:loss_final}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.49\textwidth}
+      \includegraphics[width=\textwidth]{graphs/pretraining_bleu_final.pdf}
+      \caption{Average BLEU Score}
+      \label{fig:bleu_final}
+  \end{subfigure}
+  \caption{Pre-training evaluation metrics across different model configurations.}
+  \label{fig:pretraining-metrics-combined}
 \end{figure}
 
 \paragraph{Training Infrastructure.}
 Training was performed on a single NVIDIA H200 GPU, requiring approximately 1 day and 15 hours for pretraining and 3 days for fine-tuning due to the computational complexity of the autoencoding objective and resulting lack of effective batching opportunities.
 Detailed hyperparameters and training configurations are provided in Appendix~\ref{app:training_details}.
-
-\subsection{Tools and Interaction Protocol}
-We follow the SWE-smith setup for SWE-bench Verified \cite{jimenez2024swebench}, where the assistant agent interacts with the environment through a minimal toolset and a fixed protocol. 
-Concretely, the available tools are a shell interface (\texttt{bash}), a submission tool (\texttt{submit}), and a custom editing utility (\texttt{str\_replace\_editor}).
-These tools generate the observations that accumulate within the trajectory context.
-The exact SWE-smith prompt (and the tools description) is provided in Appendix~\ref{app:swe-smith-prompt}.
-It should be noted that this method does not use function calling functionality of the model. 
-While some models support a special format for function calling (e.g. additional fields for the tools descriptions etc.), in this case we just use the tools as described in the prompt.
-
-\paragraph{The \texttt{str\_replace\_editor}.}
-This is a stateful file editor that supports viewing, creating, and editing files with precise, line-exact operations.
-Its state persists across steps, enabling consistent multi-edit workflows. 
-The interface exposes the following commands: \texttt{view}, \texttt{create}, \texttt{str\_replace}, \texttt{insert}, and \texttt{undo\_edit}. 
-
-For deterministic edits, \texttt{str\_replace} requires \texttt{old\_str} to match exactly one or more consecutive lines in the target file, including whitespace.
-The \texttt{new\_str} content replaces the matched block.
-The \texttt{insert} command appends \texttt{new\_str} after a specified line number.
 
 \subsection{Compression Strategy}
 The encoder is only applied if all of the next are true:
@@ -441,6 +473,14 @@ It resolves 26 issues, establishing a solid baseline for an off-the-shelf model 
 \end{table}
 
 
+\begin{figure}[hbt]
+    \centering
+    \includegraphics[width=0.8\textwidth]{graphs/bleu_swe-bench_trajectories_ar.pdf}
+    \caption{BLEU scores on SWE-bench}
+    \label{fig:bleu_swe-bench}
+\end{figure}
+
+
 The core of our experiment tests ICAE with an encoder fine-tuned on SWE-bench trajectories.
 When pairing the ICAE-FT encoder with the base Qwen decoder, we observe a slight improvement in token-wise accuracy over the uncompressed Qwen baseline (0.9020 vs. 0.8967) and a modest 10\% reduction in generation time.
 However, this configuration sees a significant drop in task performance, resolving only 11 issues compared to the baseline's 26.
@@ -469,9 +509,9 @@ More on that is in Chapter 6 limitations section.
 
 \begin{figure}[hbt]
   \centering
-  \includegraphics[width=0.9\textwidth]{graphs/bleu1.png}
-  \caption{BLEU-1 scores comparison}
-  \label{fig:bleu1}
+  \includegraphics[width=0.9\textwidth]{graphs/bleu_all_datasets.pdf}
+  \caption{BLEU scores comparison across all datasets}
+  \label{fig:bleu_all_datasets}
 \end{figure}
 
 
