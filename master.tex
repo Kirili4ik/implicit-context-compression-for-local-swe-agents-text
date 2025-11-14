@@ -16,7 +16,6 @@ coverBCOR=11mm% binding correction for the cover - adapt accordingly
 \makeatother
 
 \usepackage{booktabs}% for more beautiful tables
-\usepackage{cleveref}% intelligent references
 \usepackage{xcolor}
 
 \usepackage{diffcoeff}
@@ -42,6 +41,9 @@ coverBCOR=11mm% binding correction for the cover - adapt accordingly
     ]%
 {biblatex}
 \addbibresource{Kirill-Thesis.bib}
+
+% HYPERLINKS AND CLEVEREF
+\usepackage{cleveref}% intelligent references
 
 % automatische Anführungszeichen
 \usepackage[autostyle=true]{csquotes}
@@ -75,10 +77,14 @@ A brief abstract of this thesis in English.
 
 \cleardoublepage{}
 
+\hypertarget{toc}{}
 \tableofcontents
 
 
 \mainmatter{}
+
+% Add backlink to Contents in footer next to the page number (only in mainmatter)
+\renewcommand*{\pagemark}{{\hyperlink{toc}{Contents~}\thepage}}
 
 
 % ========================================

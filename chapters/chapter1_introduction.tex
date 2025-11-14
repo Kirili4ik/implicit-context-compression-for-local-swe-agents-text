@@ -71,11 +71,20 @@ Figure \ref{fig:example1} illustrates the core concept.
 The primary goal of context condensation is to leverage this potential density to enable LLM agents to execute tasks involving long chains of reasoning (Chain-of-Thought, CoT) and more steps by condensing the environment observations.
 Achieving this condensation improves the model's capability to handle long contexts while offering tangible advantages in improved latency and reduced GPU memory cost during inference.
 
-\subsection{Research Question}
+\subsection{Research Questions}
 
-The exploration of implicit context condensation as a solution to the long-context problem leads to the central research question of this thesis:
+The exploration of implicit context condensation as a solution to the long-context problem leads to the central research questions of this thesis:
 \vspace{1em}
 \begin{center}
-\textit{Does implicit context condensation allow for the completion of longer agentic trajectories?}
+\textbf{RQ1:} \textit{Does implicit context condensation allow for the completion of longer agentic trajectories?}
 \end{center}
 \vspace{1em}
+A secondary question explores whether the benefits of this approach on general comprehension tasks transfer to the domain of agentic software engineering:
+\vspace{1em}
+\begin{center}
+\textbf{RQ2:} \textit{How does the performance of implicit context condensation on standard NLP benchmarks translate to the distinct demands of agentic software engineering tasks?}
+\end{center}
+
+\textbf{RQ2 VARIANT 1:} How does the performance of implicit context condensation for agentic software engineering tasks compare to its performance on standard NLP benchmarks?
+
+\textbf{RQ2 VARIANT 2:} Are implicit compression techniques effective when applied to multi-step agentic software engineering workflows?

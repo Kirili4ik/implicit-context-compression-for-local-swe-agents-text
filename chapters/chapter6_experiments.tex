@@ -480,6 +480,23 @@ It resolves 26 issues, establishing a solid baseline for an off-the-shelf model 
     \label{fig:bleu_swe-bench}
 \end{figure}
 
+\begin{figure}[hbt]
+  \centering
+  \begin{subfigure}[b]{0.49\textwidth}
+      \includegraphics[width=\textwidth]{graphs/boxplot-main.png}
+      \caption{Box plot comparison of the baseline against the ICAE-PT+FT model}
+      \label{fig:boxplot}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.49\textwidth}
+      \includegraphics[width=\textwidth]{graphs/boxplot-stepcount.png}
+      \caption{Comparison of the number of steps at termination for the baseline model and the ICAE-compressed model}
+      \label{fig:boxplot-stepcount}
+  \end{subfigure}
+  \caption{Box plot comparisons of baseline and ICAE-compressed models.}
+  \label{fig:boxplot-combined}
+\end{figure}
+
 
 The core of our experiment tests ICAE with an encoder fine-tuned on SWE-bench trajectories.
 When pairing the ICAE-FT encoder with the base Qwen decoder, we observe a slight improvement in token-wise accuracy over the uncompressed Qwen baseline (0.9020 vs. 0.8967) and a modest 10\% reduction in generation time.
@@ -501,27 +518,62 @@ The ICAE encoder, even after fine-tuning, likely discards or corrupts some of th
 While the compression may be sufficient for preserving the general semantics of the text, it fails to retain the high-fidelity details required for complex, multi-step coding tasks, ultimately leading to agent failure.
 
 
-Efficiency Results: ICAE \cite{ge_-context_2024} compression led to measurable efficiency improvements, achieving a theoretically 10\% faster mean tool-call generation time than the vanilla baseline (e.g., 1.12s vs 1.23s).
-It took on average 0.31s to compress the observation and 0.81s to generate the next tool call.
-It should be noted that all the experiments in the table do not use KV-caching.
-More on that is in Chapter 6 limitations section.
+\paragraph{Efficiency Gains.}
+Beyond trajectory length, we also examined the computational efficiency of the ICAE compression approach.
+The compressed agent demonstrated measurable improvements in generation speed, achieving approximately 10\% faster mean tool-call generation time compared to the uncompressed baseline (1.12s versus 1.23s per tool call).
+This speedup is composed of two phases: the compression of the observation (averaging 0.31s) and the subsequent generation of the next tool call (averaging 0.81s).
+The reduction in generation time is a direct consequence of the smaller context size that the decoder must process after compression.
+
+It is important to note that these timing measurements were obtained without the use of KV-caching, which would typically accelerate generation in multi-turn scenarios.
+The absence of KV-caching in our experimental setup means that the reported speedups are conservative estimates of the potential efficiency gains.
+A more detailed discussion of this limitation and its implications for real-world deployment is provided in Section~\ref{sec:limitations}.
+
+
+\subsection{Impact on Agentic Trajectory Length}
+\label{sec:rq1_trajectory_length}
+
+To address our first research question---whether implicit context condensation allows for the completion of longer agentic trajectories---we analyzed the number of interaction steps each agent could perform before reaching the context window limit of 32,000 tokens.
+Our findings provide a clear affirmative answer.
+The \texttt{ICAE-PT+FT} model, which employs compression, was able to execute significantly longer trajectories compared to the uncompressed baseline.
+On average, the compressed agent performed 113 steps before termination, a 40\% increase over the baseline's average of 81 steps.
+This demonstrates that by condensing lengthy observations, our approach effectively creates more space within the context window, enabling the agent to engage in more extensive problem-solving dialogues.
+
+The difference in trajectory length is further illustrated by the box plot in Figure~\ref{fig:boxplot-stepcount}.
+The plot compares the distribution of step counts at termination for the baseline agent and the ICAE-compressed agent.
+The median step count for the ICAE agent is visibly higher than that of the baseline, and the entire interquartile range is shifted upwards.
+Although both models exhibit outliers representing exceptionally long trajectories, the overall distribution for the ICAE agent is skewed towards a higher number of steps, reinforcing the conclusion that compression enables more prolonged interactions.
+
+This result is a direct consequence of the ICAE mechanism.
+The baseline model must store all the observations in its context, which quickly consumes the available token budget.
+In contrast, the ICAE model compresses these observations into a fixed number of memory tokens, substantially reducing their footprint.
+This efficiency gain allows the agent to accumulate a much larger history of interactions before exhausting its context, thereby theoretically allowing it to successfully complete the task.
+
+
+\subsection{Performance on Agentic Versus Standard NLP Tasks}
+\label{sec:rq2_performance_domains}
+
+Our second research question investigates how the performance of implicit context condensation on standard NLP benchmarks translates to the distinct demands of agentic software engineering tasks.
+The comparison of BLEU scores across all evaluated datasets, presented in Figure~\ref{fig:bleu_all_datasets}, reveals a clear performance disparity between these two domains.
+While the ICAE-based models achieve high BLEU scores on question-answering and reconstruction tasks (SQuAD and RepoQA), indicating effective preservation of semantic and syntactic information for these benchmarks, there is a noticeable degradation in performance on the SWE-bench agentic task.
+
+This disparity suggests that while our compression method is effective for tasks requiring general comprehension and information retrieval from text and code, it struggles with the high-fidelity requirements of multi-step software engineering workflows.
+
+The underlying reasons for this performance gap are multifaceted and point to several methodological limitations of the current approach.
+These factors, including the constraints of fixed-length compression at high, lossy ratios and the trade-offs associated with parameter-efficient fine-tuning, are discussed in detail in Chapter~\ref{cha:limitations}.
+This analysis underscores that transferring context condensation techniques to complex agentic domains is not straightforward and requires further research to bridge the performance gap.
 
 
 \begin{figure}[hbt]
   \centering
-  \includegraphics[width=0.9\textwidth]{graphs/bleu_all_datasets.pdf}
+  \includegraphics[width=1.0\textwidth]{graphs/bleu_all_datasets.pdf}
   \caption{BLEU scores comparison across all datasets}
   \label{fig:bleu_all_datasets}
 \end{figure}
 
 
-% ========================================
-% SECTION 5.x: DISABLING THINKING EXPERIMENTS
-% ========================================
-\section{Disabling Thinking Experiments}
-\label{sec:disabling_thinking}
 
-\textbf{TODO: maybe we push it to appendix?}
+\section*{Ablation: Disabling Thinking}
+\label{sec:disabling_thinking}
 
 The Qwen3 model family provides a mechanism to toggle its "thinking" mode, which is designed for complex reasoning.
 For our agentic experiments, where a tool-call generation is prioritized, we decided to disable this feature not to overcomplicate the pipeline.
