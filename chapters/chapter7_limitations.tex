@@ -7,6 +7,7 @@
 \textbf{note: here I write "what can we not cover and how would you try to improve it in the future. e.g. only 256 tokens etc"}
 
 \section{Limitations of Fixed-Length Context Condensation}
+\label{sec:limitations}
 
 A core methodological limitation of the investigated approach is its reliance on a fixed number of memory tokens (e.g., 256) for context condensation. This design choice imposes a hardcoded, fixed compression ratio. For instance, a model configured with 256 memory tokens and a 4x compression ratio can only process a maximum of 1024 tokens of context at once. For longer inputs, such as an observation of 10,000 tokens, the condensation process would need to be applied iteratively in a loop. This would likely be slow and undermine the efficiency gains of the approach.
 

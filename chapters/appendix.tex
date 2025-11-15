@@ -180,6 +180,50 @@ $ str_replace_editor --command view --path /mnt/shared-fs/gelvan/swe-agent-disti
 This example demonstrates a hand-crafted scenario, closely related to SWE-bench, designed to test the model's ability to comprehend and utilize decompressed data from its memory. The highlighted part shows the model successfully identifying a hidden requirements file by using the context provided in its compressed memory.
 *\texttt{<system\_prompt>} is from Section~\ref{sec:swebench_system_prompt}.
 
+\section{Ablation Experiment: Disabling Thinking}
+\label{sec:disabling_thinking}
+
+The Qwen3 model family provides a mechanism to toggle its "thinking" mode, which is designed for complex reasoning.
+For our agentic experiments, where a tool-call generation is prioritized, we decided to disable this feature not to overcomplicate the pipeline.
+The official recommendation for disabling thinking involves prefixing the generation prompt with a specific token sequence, \texttt{<think>\textbackslash n\textbackslash n</think>}, which signals to the model that the "thinking" step has already occurred and is empty.
+Crucially, for multi-turn interactions, this prefix should be ephemeral: it is added for generation and then omitted from the conversation history to prevent it from influencing subsequent turns.
+
+In an early stage of our experiments, we explored the model's sensitivity to this prompting convention by deviating from the recommended protocol.
+Instead of removing the thinking prefix from the history, we allowed it to accumulate with each agent step.
+This resulted in a setup where the context for generating action \(a_k\) contained not only the history of actions and observations but also \(k-1\) instances of the thinking-disabling prefix.
+While unintentional, this created a distinct experimental condition that we analyzed for its impact on model performance.
+
+Table~\ref{tab:thinking_variants} compares the performance of key model configurations under both the official "Clean" prompting protocol and our "Cumulative" prompting experiment.
+
+\begin{table}[h]
+    \centering
+    \small
+    \caption{Comparison of prompting strategies for disabling thinking in Qwen3-8B. "Cumulative" refers to accumulating the `\texttt{<think>...}` prefix in the history, while "Clean" follows the official recommendation of removing it after each step.}
+    \label{tab:thinking_variants}
+    \begin{tabular}{llc}
+        \toprule
+        \textbf{Configuration} & \textbf{Prompting Strategy} & \textbf{Accuracy $\uparrow$} \\
+        \midrule
+        Baseline & Cumulative & 0.9000 \\
+        Baseline & Clean & 0.8967 \\
+        \addlinespace
+        ICAE-FT & Cumulative & 0.9089 \\
+        ICAE-FT & Clean & 0.9020 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The results present an unexpected finding.
+The "Cumulative" prompting strategy, despite polluting the context with repetitive, non-semantic tokens, yielded slightly higher token-wise accuracy compared to the "Clean" approach for both the baseline Qwen model (0.9000 vs. 0.8967) and the ICAE-FT compressed model (0.9089 vs. 0.9020).
+Note, that we, of cource, do not calculate the accuracy on the thinking tokens.
+We hypothesize that the repeated, structured nature of the accumulated prefixes might enable the model's attention mechanism to process the context more efficiently, or that the model learns to largely ignore these predictable tokens, leading to a marginal improvement in next-token prediction.
+
+However, it is important to note that these differences are small and might be attributable to randomness in the evaluation process.
+Due to resource constraints, we did not conduct multiple runs to calculate standard deviations for these measurements, which would be necessary to establish statistical significance.
+
+Anyways, all other experiments reported in this work, including the main results in Table~\ref{tab:qwen_icae_variants_absolute}, were conducted using the official "Clean" prompting methodology to ensure the validity and reproducibility of our findings.
+This ablation study may be of interest to future work involving the Qwen3 model family.
+
 \section{Training Details and Hyperparameters}
 \label{app:training_details}
 

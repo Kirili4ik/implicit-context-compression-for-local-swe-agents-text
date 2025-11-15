@@ -52,10 +52,6 @@ SQuAD is a reading comprehension benchmark consisting of over 100,000 question-a
 The dataset was constructed by asking crowdworkers to pose up to five questions on paragraphs from these articles, where the answer to each question is a direct span of text from the passage.
 For example, given the passage ``In meteorology, precipitation is any product of the condensation of atmospheric water vapor that falls under gravity,'' a corresponding question is ``What causes precipitation to fall?'' with the answer being the single word ``gravity'' extracted from the text.
 
-For our experiments, we use SQuAD 2.0~\cite{rajpurkar2018know}, which extends the original dataset by including unanswerable questions.
-This modification challenges a model not only to extract the correct answer when available but also to correctly identify when no answer exists within the context.
-This setup makes it a robust benchmark for evaluating how well our compressed representations retain the necessary fidelity for fine-grained semantic understanding.
-
 The choice of SQuAD is motivated by its widespread adoption and focus on extractive answers.
 In contrast, the original In-Context Autoencoder work~\cite{ge_-context_2024} used the PWC dataset, which is less common and focuses more on generating longer, abstractive answers rather than extracting specific spans of text.
 

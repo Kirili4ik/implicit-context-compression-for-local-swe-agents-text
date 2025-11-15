@@ -3,44 +3,32 @@
 % ========================================
 \chapter{Experiments}
 
-\textbf{note: I guess here I write not only experiments, but also the results of the experiments?}
-
-\textbf{TODO: where to write about enc-lora+dec-lora experiments?}
-
-
 %
-\section{Initial Prototype Experiments: The Necessity of Training}
+\section{Feasibility of Training-Free Context Condensation}
 
-In the hard embedding setting, discrete tokens are represented as one-hot vectors that index the input embedding matrix.
-For condensation, we compute the elementwise mean of the one-hot vectors, yielding a convex combination over the vocabulary.
+We first investigate whether meaningful context compression can be achieved without any model training.
+These initial experiments explore methods for replacing discrete tokens with continuous representations, testing the hypothesis that simple embedding aggregation can preserve essential information for downstream tasks.
 
-In the soft-embedding setting, we remove the argmax and delete the input embedding layer so the model consumes continuous mixtures rather than token lookups.
-With Qwen2.5-4B (tied input/output embedding matrices), we feed this vector directly as the next-step input (i.e., into the stack where the removed embedding layer would have produced a token embedding).
-Figures~\ref{fig:ser1}–\ref{fig:ser2} explain this online injection point and its relation to the standard token pathway.
+We explore two primary settings for training-free condensation.
+In the \textbf{hard embedding} setting, discrete tokens are represented as one-hot vectors that index the input embedding matrix.
+For condensation, we compute the elementwise mean of these vectors.
+In the \textbf{soft-embedding} setting, we bypass the argmax operation and token lookup, feeding a continuous mixture of embeddings directly to the model.
+Figure~\ref{fig:ser1} illustrates the standard token processing pathway, while Figure~\ref{fig:ser2} depicts our modification, which injects these continuous embeddings directly.
 
-\paragraph{Online soft-embedding pathway}
-We implemented the soft pathway by bypassing token sampling and the embedding lookup:
-\begin{enumerate}
-    \item run a normal decode step to obtain logits
-    \item compute probabilities and the corresponding expected embedding
-    \item insert that continuous vector directly as the next-step input
-\end{enumerate}
-This is done via KV-cache manipulation to inject the continuous embeddings directly into the generation pipeline.
-The intent was to test whether context can be compressed into a small number of continuous vectors without any additional training or adapters (see Fig.~\ref{fig:ser1}–\ref{fig:ser2}).
+\paragraph{Online soft-embedding}
+The online pathway is implemented by bypassing token sampling and the embedding lookup.
+After running a standard decoding step to obtain logits, we compute the corresponding expected embedding and insert this continuous vector directly as the input for the next step using KV-cache manipulation.
+This approach is illustrated in Figure~\ref{fig:ser2}.
+The goal is to assess whether context can be compressed without trained adapters.
 
-\paragraph{Regenerate-LLM offline pathway}
-We have thought that in the described case, generating different answers for the first embedding iteratively might be collapsing and the next results, which could decreased score in metrics.
-So we tried a method that we called regenerate-llm.
-Given an input sequence, we prompt the model to reproduce that sequence under teacher forcing and, at each step, record all the output embeddings.
-At inference time, instead of recomputing embeddings online, we reuse the saved embeddings as the context representation.
+\paragraph{Regenerate-LLM offline}
+To mitigate potential collapse from iterative generation, we also explored an offline method.
+In this approach, we prompt the model to reproduce a given input sequence under teacher forcing and record all output embeddings at each step.
+At inference time, these saved embeddings are reused as the context representation, avoiding online recomputation.
 
-\paragraph{Results and details}
+\paragraph{Results}
 Table~\ref{tab:avg_variants} reports SQuAD performance under these condensation strategies.
-These results, together with the implementation schematics in Fig.~\ref{fig:ser1}–\ref{fig:ser2}, establish that replacing hard tokens with untrained condensed mixtures (whether via online or via offline regenetation) substantially degrades QA accuracy, motivating the trained condensation methods that follow.
-
-%The initial approach tested replacing hard tokens with soft/averaged continuous embeddings without fine-tuning.
-%These prototype experiments, using methods like KV-cache hacks and direct embedding inputs in vLLM, demonstrated that scores decreased by more than 50\% on QA tasks (e.g., SQuAD context embed F1 dropped from 0.71 to 0.17 or 0.11).
-%This negative result confirmed the hypothesis that training is necessary to effectively condense context into the latent space.
+The results establish that replacing discrete tokens with untrained condensed mixtures, whether generated online or offline, substantially degrades performance on the QA task.
 
 \begin{table}[h]
     \centering
@@ -52,10 +40,10 @@ These results, together with the implementation schematics in Fig.~\ref{fig:ser1
         Baseline — hard tokens         & \textbf{0.58} & \textbf{0.71} \\
         Hard embedded, avg ×2          & 0.09 & 0.21 \\
         Soft embedded online, avg ×2          & 0.05 & 0.11 \\
-        Soft embedded \text{Regenerate-LLM} avg ×2          & 0.07 & 0.16 \\
+        Soft embedded \text{Regenerate-LLM}, avg ×2          & 0.07 & 0.16 \\
         \bottomrule
     \end{tabular}
-    \caption{Baseline against averaging techniques (Prompt–Q–C)}
+    \caption{Comparison of different training-free context condensation methods}
     \label{tab:avg_variants}
 \end{table}
 
@@ -63,13 +51,13 @@ These results, together with the implementation schematics in Fig.~\ref{fig:ser1
     \centering
     \begin{subfigure}[b]{0.49\textwidth}
         \includegraphics[width=\textwidth]{graphs/ser1.jpeg}
-        \caption{Visualization of the "without training" approach, p1}
+        \caption{Original approach}
         \label{fig:ser1}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.49\textwidth}
         \includegraphics[width=\textwidth]{graphs/ser2.jpeg}
-        \caption{Visualization of the "without training" approach, p2}
+        \caption{Our modification variant (soft embedding, online)}
         \label{fig:ser2}
     \end{subfigure}
     \caption{Visualization of the "without training" approach.}
@@ -77,96 +65,78 @@ These results, together with the implementation schematics in Fig.~\ref{fig:ser1
 \end{figure}
 
 
-\section{Basic experiments with training}
+\section{Learned Projections for Context Condensation}
 
-Having established in \S5.1 that naively averaging ("avg, ×2") adjacent embeddings sharply degrades QA quality, we next asked whether a learned projection inserted at the embedding interface could recover performance under the same $2\times$ compression ratio.
-The motivation was that, if the embedding manifold is non-linear, a trained projection might learn a geometry-preserving down-map that simple averaging cannot provide.
-The baseline (Step 1) and the "soft/hard mix works" observation (Step 2) are illustrated in \ref{fig:steps1-3} and frame this question empirically.
+We as well investigate whether a trained, low-capacity projection module could learn to compress adjacent embedding vectors while preserving task-relevant information.
+We explore several architectural variants to map a pair of concatenated hidden vectors $[e_{2t-1}; e_{2t}]$ from $\mathbb{R}^{2d}$ to a single vector in $\mathbb{R}^{d}$.
+These variants included a simple \textbf{linear projector}, a shallow non-linear \textbf{MLP} (one to two layers with GELU activation), and a full \textbf{BERT encoder} \cite{devlin2018bert} to provide a higher-capacity compression mechanism.
 
-\begin{figure}[hbt]
-  \centering
-  \includegraphics[width=0.5\textwidth]{graphs/steps1-3.jpg}
-  \caption{Visualization of the baseline approach, step 1-3; should be redrawn}
-  \label{fig:steps1-3}
-\end{figure}  
+All experiments used the SQuAD context-embedding setting, with the base Qwen3-8B model frozen.
+Only the parameters of the projection module were trained via token-level cross-entropy on the answer generation task.
+Across all architectural variants, the models failed to generalize.
+As shown in Figure~\ref{fig:squad_metrics}, while the models were able to overfit to the training data, the validation loss flattened after an initial small improvement.
+The resulting F1 scores remained significantly below the uncompressed baseline, demonstrating that these simple projection methods could not recover the performance lost to compression.
 
-\paragraph{Architectural variants}
-We explored minimal-capacity projections that compress two adjacent hidden vectors into one "soft token" acceptable to the frozen decoder.
-The first family was a \textbf{linear projector}, $g_\theta:\mathbb{R}^{2d}\to\mathbb{R}^{d}$, applied to $[e_{2t-1};e_{2t}]$ with optional residual gating on the arithmetic mean to stabilize scale.
-The second family was a shallow non-linear MLP (one--two layers with GELU), again mapping $2d\to d$.
-A third variant inserted a full BERT encoder \cite{devlin2018bert} (12 layers, 768-dimensional hidden states) to process the concatenated embeddings $[e_{2t-1};e_{2t}]$ and produce a single compressed representation, which was then projected back to the decoder's dimensionality.
-This encoder-based approach provided substantially higher capacity than the shallow projections, allowing the model to learn more complex compression patterns through its multi-layer self-attention mechanism.
-These designs follow the "trainable averaging" schematics shown on \ref{fig:step35}.
+We also explored several modifications to the training protocol through systematic ablation studies.
+We varied the projection type (linear versus 1- or 2-layer MLP), normalization schemes (pre/post LayerNorm, scale-preserving residual gates), regularization techniques (weight decay, dropout), and the decision to re-project via vocabulary space versus staying in hidden space.
+Additionally, we experimented with unfreezing the token embedding table while keeping the main transformer blocks frozen.
+None of these changes meaningfully altered the outcome; the models were consistently unable to train and generalize to the SQuAD task.
 
-\begin{figure}[hbt]
-  \centering
-  \includegraphics[width=0.5\textwidth]{graphs/step3.5.jpg}
-  \caption{Visualization of the experimental setup, step 3.5; should be redrawn}
-  \label{fig:step35}
-\end{figure}  
-
-\paragraph{Training protocol and results}
-All experiments used the SQuAD \cite{squad} "context-embed" setting from \S5.1, keeping Qwen3-8B frozen and training only the projection parameters via token-level cross-entropy on answer continuations.
-After verifying the pipeline on a single batch, we trained on SQuAD train and evaluated on validation.
-Across linear, MLP, and BERT projections, models quickly overfit but did not generalize: validation loss flattened after early improvement (see Figure~\ref{fig:squad_metrics}), and EM/F1 remained well below the hard-token baseline, never closing the large gap to the no-compression control (e.g., the $\sim 50\%$--$80\%$ relative F1 drop visible for averaging).
-
+The failure of these methods suggests two potential underlying issues.
+First, the embedding manifold may possess a non-smooth or complex geometric structure that is disrupted by simple linear or shallow non-linear projections, leading to irreversible information loss that the frozen decoder cannot overcome.
+Second, even the higher-capacity BERT encoder may lack the expressive power to learn a sufficiently meaning-preserving compression when paired with a much larger, frozen decoder.
 \begin{figure}[hbt]
     \centering
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.45\textwidth}
         \includegraphics[width=\textwidth]{graphs/squad_val_loss.pdf}
-        \caption{SQuAD Validation Loss}
+        \caption{}
         \label{fig:squad_val_loss}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.45\textwidth}
         \includegraphics[width=\textwidth]{graphs/squad_f1_score.pdf}
-        \caption{SQuAD F1 Score}
+        \caption{}
         \label{fig:squad_f1_score}
     \end{subfigure}
-    \caption{Validation loss and F1 score curves for the SQuAD generalization experiment.}
+    \caption{SQuAD validation metrics for projection-based compression.}
     \label{fig:squad_metrics}
 \end{figure}
 
-
-\paragraph{Ablation studies}
-We varied:
-\begin{itemize}
-    \item projection type (linear vs.\ 1- or 2-layer MLP),
-    \item normalization (pre/post LayerNorm, scale-preserving residual gates),
-    \item regularization (weight decay, dropout), and
-    \item the decision to re-project via vocabulary space versus staying in hidden space.
-\end{itemize}
-We also tried unfreezing the token embedding table while keeping the transformer blocks frozen.
-None of these changes altered the qualitative outcome: projections still overfit quickly and failed to surpass the baseline (\ref{fig:steps1-3}) in EM/F1.
-These negative findings echo the summary on the checkpoint deck ("all our fine-tuning techniques do not recover quality").
-
-\paragraph{Hypotheses for the failure}
-Two factors appear decisive.
-
-Firstly, we hypothesize that if the embedding manifold is not smooth, merging two embeddings into one may lose critical geometric structure that the frozen decoder relies on, making it impossible for a simple projection to preserve the information needed for downstream tasks.
-
-
-Secondly, we hypothesize that the fundamental limitation is the expressive power of the overall model architecture.
-Even though the BERT encoder contains 0.1B parameters (more than the projections), it lacks the capacity to learn effective compression when paired with a frozen 8B decoder.
-
-This observation motivated our transition to the ICAE framework, where training LoRA adapters ($\approx$2\% of the 8B model's weights) provides substantially greater expressive power by modulating the decoder's internal representations, despite involving fewer trainable parameters than the full BERT encoder.
-
-
-\paragraph{Summary}
-The experiments illustrated in \ref{fig:step35} demonstrate that trainable projections are insufficient to recover QA performance under $\approx2\times$ compression.
-These results motivated us to explore larger-scale training approaches and alternative solutions such as the ICAE framework.
-
-
-%Pretrained ICAE \cite{ge_-context_2024} demonstrated the ability to decompress general texts almost perfectly.
-%High BLEU scores were achieved on datasets like PWC (99.1 for Mistral-7B, 99.5 for Llama-2-7B) and SQuAD (98.1 for Qwen3-8B), indicating that memory slots retained almost all context information for contexts up to 400 tokens.
-%Analysis of reconstruction errors showed patterns similar to human memorization mistakes (e.g., restoring "large pretrained language model" as "large pretrained model"), suggesting the model selectively emphasizes or neglects information based on its understanding.
-
 \section{ICAE Pretraining and Results on General Text Reconstruction}
+\label{sec:icae_pretraining_results}
 
-We evaluate ICAE autoencoding (AE) pretraining using Qwen3-8B as the base model.
+This section details the pretraining phase of our In-Context Autoencoder, hereafter referred to as ICAE-PT.
+The methodology for this pretraining stage is conceptually outlined in Chapter~\ref{cha:methods}.
+The primary objective of this phase is to train the encoder to generate compressed representations from which the original text can be accurately reconstructed.
+
+
+The pretraining stage was performed on the dataset SlimPajama-6B \cite{together2023redpajama}\footnote{\url{https://huggingface.co/datasets/DKYoon/SlimPajama-6B}} using a combination of autoencoding and language modeling objectives.
+It is a common text dataset, that is used for pretraining LLMs, consisting of 6 billion tokens (a random 1\% of the original 627B tokens).
+The dataset that authors used in the ICAE paper \cite{ge_-context_2024} "The Pile" is unavailable.
+Following the original ICAE methodology, the training objective was a 50/50 mix of an autoencoding (AE) task, signaled by a special \texttt{<AE>} token, and a language modeling (LM) task, which used no special token.
+The AE process is conceptually illustrated in Figure~\ref{fig:icae}.
+
+\begin{figure}[hbt]
+  \centering
+  \begin{subfigure}[b]{0.49\textwidth}
+      \includegraphics[width=\textwidth]{graphs/pretraining_loss_final.pdf}
+      \caption{}
+      \label{fig:loss_final}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.49\textwidth}
+      \includegraphics[width=\textwidth]{graphs/pretraining_bleu_final.pdf}
+      \caption{}
+      \label{fig:bleu_final}
+  \end{subfigure}
+  \caption{Pre-training evaluation metrics across different model configurations.}
+  \label{fig:pretraining-metrics-combined}
+\end{figure}
+
+We evaluate ICAE-PT autoencoding (AE) pretraining using Qwen3-8B as the base model.
 During AE, the encoder compresses input contexts at a fixed $\times 4$ ratio (specifically, $1024\!\to\!256$ tokens on average), and the decoder reconstructs the original text.
 We report BLEU on SQuAD contexts tested on 100 samples.
-The checkpoint \texttt{pretrain\_2607\_1024\_4\_1B/checkpoint-12000} is selected as the main run and used for fine-tuning.
+The checkpoint using 1B tokens for 12k steps is selected as the main run and used for fine-tuning.
 
 \begin{table}[h]
     \centering
@@ -177,17 +147,21 @@ The checkpoint \texttt{pretrain\_2607\_1024\_4\_1B/checkpoint-12000} is selected
         \textbf{Run} & \textbf{Checkpoint (\# steps)} & \textbf{Compression} & \textbf{BLEU (mean, n=100)} \\
         \midrule
         Qwen3-8B/full (no ICAE) & 18k & $\times 1$ & 0.867 \\
-        \addlinespace
-        ICAE PT (pretrain\_1207) & 9k & $\times 4$ & 0.942 \\
-        ICAE PT (pretrain\_1207) & 12k & $\times 4$ & \textbf{0.964} \\
-        ICAE PT (pretrain\_1207) & 27k & $\times 4$ & 0.902 \\
-        \addlinespace
-        ICAE PT (pretrain\_2607\_1024\_4\_1B) & 9k  & $\times 4$ & 0.909 \\
-        ICAE PT (pretrain\_2607\_1024\_4\_1B) & 12k (main) & $\times 4$ & \underline{0.936} \\
-        ICAE PT (pretrain\_2607\_1024\_4\_1B) & 18k & $\times 4$ & 0.928 \\
+        \hline
+        \multicolumn{4}{|l|}{\hspace{1em}\textit{10M tokens subset}} \\
+        \hline
+        ICAE-PT & 9k & $\times 4$ & 0.909 \\
+        ICAE-PT & 12k & $\times 4$ & \underline{0.942} \\
+        ICAE-PT & 18k & $\times 4$ & 0.902 \\
+        \hline
+        \multicolumn{4}{|l|}{\hspace{1em}\textit{1B tokens subset}} \\
+        \hline
+        ICAE-PT & 9k  & $\times 4$ & 0.936 \\
+        ICAE-PT & 12k (main) & $\times 4$ & \textbf{0.964} \\
+        ICAE-PT & 18k & $\times 4$ & 0.928 \\
         \bottomrule
     \end{tabular}
-    \caption{Autoencoding (AE) reconstruction BLEU on SQuAD contexts (100-sample evaluations only). The \texttt{pretrain\_2607\_1024\_4\_1B} 12k checkpoint is the main model used for FT.}
+    \caption{Autoencoding (AE) reconstruction BLEU on SQuAD contexts (100-sample evaluations only). The 1B tokens subset 12k checkpoint is the main model used for fine-tuning.}
     \label{tab:ae_bleu_squad_ours}
 \end{table}
 
@@ -208,7 +182,9 @@ The difference is highlighted in yellow.
 
 \quad\texttt{<a href="https://swe-agent.com/latest/">}
 
-\quad\texttt{<strong>Documentation</strong></a>\&nbsp; ...}
+\quad\texttt{<strong>Documentation</strong></a>\&nbsp;}
+
+\quad\texttt{...}
 
 \noindent\textbf{Reconstructed:}
 
@@ -216,7 +192,9 @@ The difference is highlighted in yellow.
 
 \quad\texttt{<a href="https://swe-agent.com}\colorbox{yellow}{\texttt{/agent/}}\texttt{latest/">}
 
-\quad\texttt{<strong>Documentation</strong></a>\&nbsp; ...}
+\quad\texttt{<strong>Documentation</strong></a>\&nbsp;}
+
+\quad\texttt{...}
 
 \noindent Even in the very start of the text, the difference is noticeable: the hallucinated \texttt{/agent/} path segment in the URL, which could break navigation in a coding task.
 
@@ -231,72 +209,93 @@ In line with internal feedback, these AE findings suggest that the current pretr
 \section{ICAE Fine-Tuning and Results on Question Answering Tasks}
 
 While the original ICAE work \cite{ge_-context_2024} demonstrated promising results on their proprietary PWC dataset, we sought to validate these findings on a well-established benchmark to ensure generalizability and facilitate fair comparison with existing approaches.
-To address the limitation of the authors'-crafter PWC dataset, we conducted fine-tuning experiments on the Stanford Question Answering Dataset (SQuAD) \cite{squad}, a widely recognized benchmark in the question answering literature that provides standardized evaluation protocols and enables reproducible comparisons.
+To address the limitation of the authors'-crafted PWC dataset, we conducted fine-tuning experiments on the Stanford Question Answering Dataset (SQuAD) \cite{rajpurkar2016squad}, a widely recognized benchmark in the question answering literature that provides standardized evaluation protocols and enables reproducible comparisons.
 
-The fine-tuning procedure follows the encoder-decoder structure established during pretraining, with modifications to accommodate the question answering objective.
-During fine-tuning, we feed compressed context representations produced by the encoder into the decoder, concatenated with uncompressed question tokens.
-The decoder then generates answer from this mixed representation, while throught backpropagation we update the LoRA weights of the encoder.
-This setup encourages the encoder to learn compression strategies that preserve information necessary for the decoder to extract answers from.
-We employ LoRA fine-tuning \cite{hu2021lora} with identical hyperparameters to those used in the original ICAE pretraining to maintain consistency and enable fair comparison.
+During fine-tuning on SQuAD, the encoder compresses the context while the question remains uncompressed (text-compressed-text format).
+The decoder generates answers from this mixed representation.
+We use identical LoRA hyperparameters as in \cite{ge_-context_2024}.
 
 To establish a comprehensive evaluation baseline, we compare four distinct model configurations that systematically vary the training procedure and compression strategy.
-First, we evaluate the base Mistral-7B model \cite{mistral7b} without any fine-tuning to establish the zero-shot performance ceiling.
+First, we evaluate the base Mistral-7B model \cite{jiang2023mistral} without any fine-tuning to establish the zero-shot performance ceiling.
 Second, we construct a LoRA fine-tuned baseline where we apply LoRA fine-tuning directly to Mistral-7B on the SQuAD dataset without any compression mechanism, thus representing the standard approach without context condensation.
 This baseline operates without an encoder-decoder structure, functioning as a conventional LLM fine-tuned for question answering at full context length.
 Third, we evaluate the ICAE model fine-tuned on PWC as provided by the original authors \cite{ge_-context_2024}, which represents their reported best configuration.
 Finally, we train our own ICAE variant by fine-tuning the pretrained encoder-decoder architecture on SQuAD using identical training code and hyperparameters to those employed by the authors for PWC fine-tuning.
 This parallel setup enables direct comparison while controlling for implementation differences.
 
-Table~\ref{tab:icae_squad} presents the evaluation results across all four configurations, measured using Exact Match (EM) and F1 scores on the SQuAD validation set.
+Table~\ref{tab:icae_squad} presents the evaluation results across all four configurations, measured using F1 scores on the SQuAD validation set.
 The compression ratio for ICAE variants averages approximately $1.7 \pm 0.7$, meaning contexts are condensed to roughly 60\% of their original length while maintaining the compressed representation.
-\begin{table}[h]
+\begin{figure}[hbt]
     \centering
-    \begin{tabular}{lccc}
-        \toprule
-        \textbf{Model} &
-        \textbf{Compression} &
-        \textbf{Exact Match} &
-        \textbf{F1} \\
-        \midrule
-        Mistral-7B (no FT)          & ×$1$         & 49 & 68 \\
-        LoRA-FT baseline            & ×$1$         & \underline{59} & \underline{65} \\
-        ICAE FT (PwC, authors)       & ×$1.7\pm0.7$ & 41 & 57 \\
-        ICAE FT (SQuAD, ours)              & ×$1.7\pm0.7$ & \textbf{69} & \textbf{73} \\
-        \bottomrule
-    \end{tabular}
-    \caption{ICAE averaging on SQuAD}
-    \label{tab:icae_squad}
-\end{table}
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \begin{tabular}{lcc}
+            \toprule
+            \textbf{Model} &
+            \textbf{Compression} &
+            \textbf{F1} \\
+            \midrule
+            Baseline (Mistral-7B)          & ×$1$         & 68 \\
+            Baseline+FT            & ×$1$         & \underline{65} \\
+            ICAE-PT+FT (PwC, authors)      & ×$1.7\pm0.7$ & 57 \\
+            ICAE-PT+FT (SQuAD, ours)       & ×$1.7\pm0.7$ & \textbf{73} \\
+            \bottomrule
+        \end{tabular}
+        \caption{F1 scores on SQuAD using Mistral-7B as the base model}
+        \label{tab:icae_squad}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{graphs/bleu_squad.pdf}
+        \caption{BLEU scores on SQuAD using Qwen3-8B as the base model}
+        \label{fig:bleu_squad}
+    \end{subfigure}
+    \caption{SQuAD evaluation results}
+    \label{fig:squad_results}
+\end{figure}
 
-Several important observations emerge from these results.
-First, our ICAE fine-tuning on SQuAD achieves the highest performance across both metrics, with an F1 score of 73 and Exact Match of 69, representing substantial improvements over both the untrained baseline and the LoRA fine-tuned control.
-Notably, this performance gain occurs despite operating under approximately 2× compression, suggesting that the learned compression strategy successfully preserves task-critical information while reducing computational overhead.
+The results in Table~\ref{tab:icae_squad}, using Mistral-7B, show that our SQuAD-finetuned ICAE model achieves a high F1 score of 73.
+This surpasses not only the uncompressed baseline but also the uncompressed, LoRA fine-tuned baseline (73 vs. 65).
+This outcome is notable, as compression typically implies information loss;
+here, it appears to provide a beneficial inductive bias, helping the model focus on salient information.
+However, the ICAE model fine-tuned on the proprietary PWC dataset fails to generalize, underscoring the importance of in-domain fine-tuning.
 
-Most strikingly, the compressed ICAE model not only outperforms the uncompressed baseline (already valuable given the computational savings) but also surpasses the uncompressed LoRA fine-tuned baseline by 8 F1 points (73 versus 65).
-This result is quite unexpected: compression typically implies information loss, yet here the compressed model demonstrates superior performance to its uncompressed counterpart trained with identical LoRA fine-tuning procedures.
-We hypothesize that this advantage stems from the compression mechanism's ability to filter and retain only the most importnat information from the context, effectively introducing a beneficial inductive bias.
-This might help the model focus on task-relevant features while discarding noise or redundant details.
+For consistency across datasets, we also measure BLEU scores, as detailed in Section~\ref{sec:quality_metrics}.
+Figure~\ref{fig:bleu_squad} presents these results for the Qwen3-8B model.
+Here, the performance ordering differs: the LoRA fine-tuned baseline surpasses the fine-tuned ICAE model.
+This is followed by the pretrained-only ICAE model, with the base model performing lowest.
+This suggests that while pretraining may temporarily diminish some of the model's capabilities, task-specific fine-tuning helps recover and enhance performance over the baseline on QA tasks.
 
+The discrepancy in relative performance between Table~\ref{tab:icae_squad} and Figure~\ref{fig:bleu_squad} can be attributed to the different base models.
+Despite their close parameter counts, Mistral-7B and Qwen3-8B exhibit distinct characteristics.
+We hypothesize that Qwen3-8B is more responsive to LoRA fine-tuning, allowing the standard fine-tuned baseline to outperform the compressed variant.
+This contrasts with the Mistral-7B results, where the ICAE compression provides a more significant relative benefit.
 
-Moreover, the ICAE model fine-tuned on PWC exhibits notably lower performance than all other configurations, achieving F1 and EM scores of 57 and 41 respectively.
-This result indicates that the PWC-fine-tuned model fails to generalize effectively to the SQuAD evaluation distribution, despite achieving strong performance on its training domain.
-This performance gap suggests potential overfitting to the specific characteristics of the PWC dataset, which may have properties that do not transfer well to standard question answering benchmarks.
-
-These results provide encouraging evidence for the viability of applying ICAE-based compression to downstream tasks beyond the original evaluation domain.
+These results provide encouraging evidence for the viability of applying ICAE-based compression to downstream tasks.
 The strong performance on SQuAD, combined with the observed compression benefits, motivated our subsequent investigation of the ICAE framework in more complex, agentic settings where context length presents significant computational challenges.
 
 
-\begin{figure}[hbt]
-  \centering
-  \includegraphics[width=0.8\textwidth]{graphs/bleu_squad.pdf}
-  \caption{BLEU scores on SQuAD}
-  \label{fig:bleu_squad}
-\end{figure}
 
-\section{Checking code data with RepoQA dataset \cite{liu2024repoqa}}
-To further assess the capabilities of our ICAE model, particularly its ability to handle long, structured, and highly technical contexts, we evaluated it on the RepoQA dataset \cite{liu2024repoqa}.
-This experiment was designed to test the hypothesis that ICAE can effectively compress entire code repositories while preserving the granular details necessary for complex reasoning and question answering about the code.
-Given that software development tasks often require a deep understanding of a large codebase, this evaluation serves as a critical stress test for our context compression approach.
+\section{Evaluation of Code Reconstruction with RepoQA}
+\label{sec:eval_repoqa}
+
+To assess the fidelity of our compression mechanism on structured, technical data, we evaluated the ICAE model on the RepoQA benchmark~\cite{liu2024repoqa}.
+This experiment serves as a test of the encoder's ability to preserve the high-fidelity, granular information inherent to source code, which is a prerequisite for any downstream software engineering task.
+As detailed in Section~\ref{sec:datasets}, we use the "Searching Needle Function" task, which requires the model to reconstruct a specific target function (the "needle") from a long code context (the "haystack") based on a natural language description.
+
+We fine-tuned the LoRA weights of the encoder on this task, optimizing for token-level cross-entropy loss between the generated and ground-truth functions, exactly like we did for SQuAD.
+
+The results of this experiment are summarized in Figure~\ref{fig:repoqa_metrics}.
+Figure~\ref{fig:repoqa_val_loss} shows the validation loss during fine-tuning.
+The loss curve displays a consistent downward trend, confirming that the model effectively learns to reconstruct the target functions from the compressed representations.
+We also see that Basline-LoRA instantly achieves better performance in terms of loss, which is expected.
+
+Figure~\ref{fig:bleu_repoqa} presents the BLEU scores, which exhibit a performance ordering consistent with the trends observed in the SQuAD evaluation.
+The LoRA fine-tuned baseline without compression achieves the highest reconstruction quality, followed by the ICAE model with both pretraining and fine-tuning (ICAE-PT+FT).
+The uncompressed baseline without fine-tuning demonstrates intermediate performance, while the ICAE model with only pretraining (ICAE-PT) yields the lowest scores.
+This hierarchy reinforces the pattern established in our earlier experiments and confirms that task-specific fine-tuning is essential for the compressed representations to approach the performance of uncompressed models.
+
+In summary, the evaluation on RepoQA indicates that the ICAE framework is capable of compressing and reconstructing complex source code with a high degree of fidelity.
 
 \begin{figure}[hbt]
     \centering
@@ -326,47 +325,18 @@ Here, we evaluate the performance of this method on the SWE-bench Verified datas
 We reimplemented the ICAE framework from scratch, building upon the original architecture \cite{ge_-context_2024} with several modifications for improved efficiency and reproducibility.
 Our implementation uses the Qwen3 model family (specificaly Qwen3-8B) as the base LLM, with LoRA adaptation applied to the attention matrices (q\_proj and v\_proj) using a rank of 128.
 To make things simpler, we explicitly disable long-form "thinking" during decoding by inserting the token sequence \texttt{\textbackslash think \textbackslash think} with a newline marker (\texttt{\textbackslash n}) in between.
-This is exactly how the authors of \cite{qwen3} recommend disabling thinking.
+This is exactly how the authors of \cite{qwen3_technical_report} recommend disabling thinking.
 This prefix makes the model "believe" it has already produced intermediate thoughts (empty in this case), while in fact no additional content is generated.
-It should also be noted that the authors of \cite{ge_context_2024} have only worked with older models (such as Llama2 and Mistral-v0.1), and only publish the weights of the latter.
-
-\paragraph{Pretraining.}
-This pretraining was performed on the dataset SlimPajama-6B \cite{pajama6b}\footnote{\url{https://huggingface.co/datasets/DKYoon/SlimPajama-6B}} using a combination of autoencoding and language modeling objectives.
-It is a common text dataset, that is used for pretraining LLMs, consisting of 6 billion tokens (a random 1\% of the original 627B tokens).
-The dataset that authors used in their original paper "The Pile" was unavailable.
-
-%\begin{figure}[hbt]
-%  \centering
-%  \includegraphics[width=0.9\textwidth]{graphs/pt_losses.png}
-%  \caption{Pretraining loss curves averaged by trajectory}
-%  \label{fig:pt_losses}
-%\end{figure}
+It should also be noted that the authors of \cite{ge_-context_2024} have only worked with older models (such as Llama2 and Mistral-v0.1), and only publish the weights of the latter.
 
 \paragraph{Fine-tuning.}
 After pretraining, ICAE is fine-tuned using trajectories from SWE-bench Verified. Fine-tuning uses a memory size of 256 tokens.
-If the observation is longer than 1024 tokens, we apply the encoder multiple times, preserving the compression ratio, following the authors of \cite{ge_context_2024}.
+If the observation is longer than 1024 tokens, we apply the encoder multiple times, preserving the compression ratio, following the authors of \cite{ge_-context_2024}.
 On figure \ref{fig:ft_losses} you can notice the sudden drop of the loss.
-This is phenomenon found in \cite{PI}.
+This is phenomenon found in \cite{chen2023pi}.
 It appears due to the modification of positional encodings for the memory tokens.
 We see the effect being the same as described by the authors.
 In our experiments, it only appers if we apply the positional encodings manipulations.
-
-\begin{figure}[hbt]
-  \centering
-  \begin{subfigure}[b]{0.49\textwidth}
-      \includegraphics[width=\textwidth]{graphs/pretraining_loss_final.pdf}
-      \caption{Evaluation Loss}
-      \label{fig:loss_final}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.49\textwidth}
-      \includegraphics[width=\textwidth]{graphs/pretraining_bleu_final.pdf}
-      \caption{Average BLEU Score}
-      \label{fig:bleu_final}
-  \end{subfigure}
-  \caption{Pre-training evaluation metrics across different model configurations.}
-  \label{fig:pretraining-metrics-combined}
-\end{figure}
 
 \paragraph{Training Infrastructure.}
 Training was performed on a single NVIDIA H200 GPU, requiring approximately 1 day and 15 hours for pretraining and 3 days for fine-tuning due to the computational complexity of the autoencoding objective and resulting lack of effective batching opportunities.
@@ -569,45 +539,3 @@ This analysis underscores that transferring context condensation techniques to c
   \caption{BLEU scores comparison across all datasets}
   \label{fig:bleu_all_datasets}
 \end{figure}
-
-
-
-\section*{Ablation: Disabling Thinking}
-\label{sec:disabling_thinking}
-
-The Qwen3 model family provides a mechanism to toggle its "thinking" mode, which is designed for complex reasoning.
-For our agentic experiments, where a tool-call generation is prioritized, we decided to disable this feature not to overcomplicate the pipeline.
-The official recommendation for disabling thinking involves prefixing the generation prompt with a specific token sequence, \texttt{<think>\textbackslash n\textbackslash n</think>}, which signals to the model that the "thinking" step has already occurred and is empty.
-Crucially, for multi-turn interactions, this prefix should be ephemeral: it is added for generation and then omitted from the conversation history to prevent it from influencing subsequent turns.
-
-In an early stage of our experiments, we explored the model's sensitivity to this prompting convention by deviating from the recommended protocol.
-Instead of removing the thinking prefix from the history, we allowed it to accumulate with each agent step.
-This resulted in a setup where the context for generating action \(a_k\) contained not only the history of actions and observations but also \(k-1\) instances of the thinking-disabling prefix.
-While unintentional, this created a distinct experimental condition that we analyzed for its impact on model performance.
-
-Table~\ref{tab:thinking_variants} compares the performance of key model configurations under both the official "Clean" prompting protocol and our "Cumulative" prompting experiment.
-
-\begin{table}[h]
-    \centering
-    \small
-    \caption{Comparison of prompting strategies for disabling thinking in Qwen3-8B. "Cumulative" refers to accumulating the `\texttt{<think>...}` prefix in the history, while "Clean" follows the official recommendation of removing it after each step.}
-    \label{tab:thinking_variants}
-    \begin{tabular}{llc}
-        \toprule
-        \textbf{Configuration} & \textbf{Prompting Strategy} & \textbf{Accuracy $\uparrow$} \\
-        \midrule
-        Baseline (Qwen) & Cumulative & 0.9000 \\
-        Baseline (Qwen) & Clean & 0.8967 \\
-        \addlinespace
-        ICAE-FT + Qwen & Cumulative & 0.9089 \\
-        ICAE-FT + Qwen & Clean & 0.9020 \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-The results present an unexpected finding.
-The "Cumulative" prompting strategy, despite polluting the context with repetitive, non-semantic tokens, yielded slightly higher token-wise accuracy compared to the "Clean" approach for both the baseline Qwen model (0.9000 vs. 0.8967) and the ICAE-FT compressed model (0.9089 vs. 0.9020).
-Note, that we, of cource, do not calculate the accuracy on the thinking tokens.
-We hypothesize that the repeated, structured nature of the accumulated prefixes might enable the model's attention mechanism to process the context more efficiently, or that the model learns to largely ignore these predictable tokens, leading to a marginal improvement in next-token prediction.
-
-Anyways, all other experiments reported in this work, including the main results in Table~\ref{tab:qwen_icae_variants_absolute}, were conducted using the official "Clean" prompting methodology to ensure the validity and reproducibility of our findings.

@@ -2,6 +2,7 @@
 % CHAPTER 4: METHODS (CONCEPTUAL: ARCHITECTURE AND TRAINING)
 % ========================================
 \chapter{Methods}
+\label{cha:methods}
 
 % NOTE: This chapter describes the conceptual framework of applying ICAE to agentic trajectories.
 % It avoids experimental specifics, results, and detailed configurations, which are covered in subsequent chapters.
@@ -70,10 +71,10 @@ This loss is backpropagated through both the decoder and encoder to update only 
 
 \subsection{Pretraining (PT)}
 The first stage follows the original ICAE formulation~\cite{ge_-context_2024}, pretraining the encoder on a large, general-purpose text corpus.
-Two self-supervised objectives are used:
+Two self-supervised objectives are used in a 50/50 mix:
 \begin{enumerate}[label=(\roman*)]
-    \item \textbf{Autoencoding (AE)}, where ICAE restores the original input text from its memory slots.
-    \item \textbf{Language Modeling (LM)}, which predicts the continuation of a context to improve generalization.
+    \item \textbf{Autoencoding (AE)}, where ICAE restores the original input text from its memory slots. This task is signaled by a special \texttt{<AE>} token, as conceptually illustrated in Figure~\ref{fig:icae}.
+    \item \textbf{Language Modeling (LM)}, which predicts the continuation of a context to improve generalization, without the use of any special tokens.
 \end{enumerate}
 During this stage, only the encoder's LoRA weights are trained.
 The goal is to teach the encoder to produce embeddings from which the frozen decoder can effectively reconstruct or continue text.
