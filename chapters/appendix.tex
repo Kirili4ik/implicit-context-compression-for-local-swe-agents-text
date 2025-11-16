@@ -178,7 +178,7 @@ $ str_replace_editor --command view --path /mnt/shared-fs/gelvan/swe-agent-disti
   \end{Verbatim}
 \end{tcolorbox}
 This example demonstrates a hand-crafted scenario, closely related to SWE-bench, designed to test the model's ability to comprehend and utilize decompressed data from its memory. The highlighted part shows the model successfully identifying a hidden requirements file by using the context provided in its compressed memory.
-*\texttt{<system\_prompt>} is from Section~\ref{sec:swebench_system_prompt}.
+*\texttt{<system\_prompt>} is from Appendix~\ref{app:swe-smith-prompt}.
 
 \section{Ablation Experiment: Disabling Thinking}
 \label{sec:disabling_thinking}
@@ -204,17 +204,17 @@ Table~\ref{tab:thinking_variants} compares the performance of key model configur
         \toprule
         \textbf{Configuration} & \textbf{Prompting Strategy} & \textbf{Accuracy $\uparrow$} \\
         \midrule
-        Baseline & Cumulative & 0.9000 \\
-        Baseline & Clean & 0.8967 \\
+        \texttt{Baseline} & Cumulative & 0.9000 \\
+        \texttt{Baseline} & Clean & 0.8967 \\
         \addlinespace
-        ICAE-FT & Cumulative & 0.9089 \\
-        ICAE-FT & Clean & 0.9020 \\
+        \texttt{ICAE-PT+FT} & Cumulative & 0.9089 \\
+        \texttt{ICAE-PT+FT} & Clean & 0.9020 \\
         \bottomrule
     \end{tabular}
 \end{table}
 
 The results present an unexpected finding.
-The "Cumulative" prompting strategy, despite polluting the context with repetitive, non-semantic tokens, yielded slightly higher token-wise accuracy compared to the "Clean" approach for both the baseline Qwen model (0.9000 vs. 0.8967) and the ICAE-FT compressed model (0.9089 vs. 0.9020).
+The "Cumulative" prompting strategy, despite polluting the context with repetitive, non-semantic tokens, yielded slightly higher token-wise accuracy compared to the "Clean" approach for both the \texttt{baseline} Qwen model (0.9000 vs. 0.8967) and the \texttt{ICAE-PT+FT} compressed model (0.9089 vs. 0.9020).
 Note, that we, of cource, do not calculate the accuracy on the thinking tokens.
 We hypothesize that the repeated, structured nature of the accumulated prefixes might enable the model's attention mechanism to process the context more efficiently, or that the model learns to largely ignore these predictable tokens, leading to a marginal improvement in next-token prediction.
 

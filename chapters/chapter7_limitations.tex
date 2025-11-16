@@ -4,8 +4,6 @@
 \chapter{Limitations and Future Work}
 \label{cha:limitations}
 
-\textbf{note: here I write "what can we not cover and how would you try to improve it in the future. e.g. only 256 tokens etc"}
-
 \section{Limitations of Fixed-Length Context Condensation}
 \label{sec:limitations}
 
@@ -15,6 +13,7 @@ This fixed-length strategy is based on the assumption that all tokens in the con
 
 
 \section{Limitations of KV-caching}
+\label{sec:kv_caching}
 A notable limitation of our experimental setup is the exclusion of Key-Value (KV) caching, a standard optimization for autoregressive inference in Transformer models.
 For methodological simplicity and to isolate the effects of context compression, in our experiments we recomputed the full attention state at each decoding step.
 
@@ -24,18 +23,20 @@ Subsequent token generation would then reuse these cached states, significantly 
 While KV-caching is essential for production deployment to achieve practical inference speeds, it was not necessary for our comparative evaluation.
 
 \section{Constraints on Computational Resources}
+\label{sec:comp_resources}
 
 \subsection{Model Scale}
 Due to computational and time constraints, our experiments were confined to the Qwen3-8B model. While evaluating on the full 500-issue SWE-bench Verified dataset provides sufficient statistical power for robust comparisons at this scale, an important direction for future research is to investigate ICAE's effectiveness on larger models like Qwen3-32B. It remains an open question whether larger models, with their increased capacity, can better leverage compressed representations or if they are more sensitive to information loss during compression.
 
 \subsection{Full Fine-Tuning}
-Our experiments with ICAE exclusively utilized LoRA for parameter-efficient fine-tuning, consistent with the original work. However, our baseline experiments revealed that a fully fine-tuned Qwen3-8B model significantly outperforms its LoRA-tuned counterpart, establishing a high-performance upper bound (resolving 86 vs. 10 issues on SWE-bench). Although the original ICAE authors did not explore full fine-tuning, this result suggests that applying full fine-tuning to the ICAE encoder could yield substantial benefits in a complex agentic setting. Our open-sourced codebase is designed to facilitate such experiments, and we encourage future work to explore this promising direction, time and resources permitting.
+Our experiments with ICAE exclusively utilized LoRA for parameter-efficient fine-tuning, consistent with the original work. However, our \texttt{baseline} experiments revealed that a fully fine-tuned Qwen3-8B model significantly outperforms its LoRA-tuned counterpart, establishing a high-performance upper bound. Although the original ICAE authors did not explore full fine-tuning, this result suggests that applying full fine-tuning to the ICAE encoder could yield substantial benefits in a complex agentic setting. Our open-sourced codebase is designed to facilitate such experiments, and we encourage future work to explore this promising direction, time and resources permitting.
 
 \subsection{Reasoning Enabled}
 For methodological simplicity, we disabled the Qwen3 model's "thinking" mechanism, which is designed to improve performance on complex reasoning tasks. Enabling this feature could prove highly beneficial, as it might allow the model to iteratively reason over the compressed knowledge stored in memory slots, potentially leading to better decision-making. Given that chain-of-thought reasoning has been shown to dramatically improve performance on various benchmarks, exploring the interaction between compressed context and explicit reasoning steps is a critical avenue for future research.
 
 
 \section{Open Source Contributions and Reproducibility}
+\label{sec:open_source}
 
 We reimplemented the ICAE framework from scratch, as the original authors' code was outdated and difficult to adapt to our experimental needs.
 Our implementation is modular and provides separate training pipelines for both pretraining (PT) and fine-tuning (FT).

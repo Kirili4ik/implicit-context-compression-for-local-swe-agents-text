@@ -111,15 +111,15 @@ The model then is able to predict actions from a history where long observations
 
 \subsection{Training Process and Model Variants}
 
-Figure~\ref{fig:training-process-overview} provides a comprehensive overview of the full training and evaluation pipeline, illustrating how each of our model variants is derived. The starting point for all variants is a standard, pretrained \texttt{Qwen3-8B} model~\cite{qwen3_technical_report}, which we refer to as the \textbf{Baseline}. This is a ready-to-use model, not one with random weights.
+Figure~\ref{fig:training-process-overview} provides a comprehensive overview of the full training and evaluation pipeline, illustrating how each of our model variants is derived. The starting point for all variants is a standard, pretrained \texttt{Qwen3-8B} model~\cite{qwen3_technical_report}, which we refer to as the \texttt{Baseline}. This is a ready-to-use model, not one with random weights.
 
-The figure illustrates two parallel training paths. The first path is for our ICAE model. The \textbf{Baseline} model is used to initialize the ICAE encoder and decoder. In the Pretraining (PT) stage, we train the LoRA weights of the encoder on the SlimPajama-6B dataset~\cite{together2023redpajama}, resulting in the \textbf{ICAE-PT} model. This model is then fine-tuned on the agentic trajectories dataset, yielding the final \textbf{ICAE-PT+FT} model. Crucially, for both ICAE training stages, only the encoder's LoRA weights are updated, while the base Qwen3 model used as the decoder remains frozen.
+The figure illustrates two parallel training paths. The first path is for our ICAE model. The \texttt{Baseline} model is used to initialize the ICAE encoder and decoder. In the Pretraining (PT) stage, we train the LoRA weights of the encoder on the SlimPajama-6B dataset~\cite{together2023redpajama}, resulting in the \texttt{ICAE-PT} model. This model is then fine-tuned on the agentic trajectories dataset, yielding the final \texttt{ICAE-PT+FT} model. Crucially, for both ICAE training stages, only the encoder's LoRA weights are updated, while the base Qwen3 model used as the decoder remains frozen.
 
-The second path is for a comparative baseline. The original \textbf{Baseline} Qwen3 model is directly fine-tuned with LoRA on the agentic trajectories dataset. This produces the \textbf{Baseline+FT} model. This allows us to compare our two-stage ICAE approach against a standard parameter-efficient fine-tuning of a base language model on the target task.
+The second path is for a comparative baseline. The original \texttt{Baseline} Qwen3 model is directly fine-tuned with LoRA on the agentic trajectories dataset. This produces the \texttt{Baseline+FT} model. This allows us to compare our two-stage ICAE approach against a standard parameter-efficient fine-tuning of a base language model on the target task.
 
 \begin{figure}[hbt]
   \centering
-  \includegraphics[width=0.5\textwidth]{graphs/overall-names.jpg}
-  \caption{Full training process overview, illustrating the derivation of Baseline, ICAE-PT, Baseline+FT, and ICAE-PT+FT models.}
+  \includegraphics[width=0.8\textwidth]{graphs/overall-names.jpg}
+  \caption{Full training process overview, illustrating the derivation of \texttt{Baseline}, \texttt{ICAE-PT}, \texttt{Baseline+FT}, and \texttt{ICAE-PT+FT} models.}
   \label{fig:training-process-overview}
 \end{figure}

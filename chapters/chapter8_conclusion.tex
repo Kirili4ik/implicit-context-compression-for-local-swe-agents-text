@@ -1,33 +1,42 @@
-% ========================================
-% CHAPTER 7: CONCLUSION
-% ========================================
 \chapter{Conclusion}
 
-\textbf{note: here I write "very high level overview of the whole thesis"}
+This thesis examined implicit context condensation for software-engineering agents, instantiating the approach with an In-Context Autoencoder (ICAE) built on Qwen3-8B and evaluating it on question answering (SQuAD), code reconstruction (RepoQA), and end-to-end agentic SWE tasks (SWE-bench Verified).
+The work also assessed training-free and lightweight learned compression attempts, and documented efficiency effects and limits.
 
-\textbf{TODO: I'm not sure where to write this part so let it be here for a while:}
-
-\section{Why our approach did not work?} 
-Several factors may contribute to this performance degradation. One hypothesis is a representation-behavior mismatch, where the compression process perturbs the latent representations in a way that hinders the decoder's ability to perform tasks like tool use. Other contributing factors include a drop in reconstruction quality for specialized content, such as code, and potential overfitting to training labels, as suggested by high local accuracy but low overall task resolution rates.
-
-
-% ========================================
-% SECTION 7.1: SUMMARY OF ACHIEVEMENTS
-% ========================================
 \section{Summary of Achievements}
 
-Describe main results of main experiment (ICAE on SWE-bench Verified dataset).
+\begin{enumerate}
+	\item \textbf{ICAE for agentic context management.}
+	Implemented a compressor--decoder pipeline that replaces long observations with learned memory tokens within standard LLMs (\Cref{fig:icae,fig:icae-agent-training-overview,fig:icae-agent-training-step}).
+	
+	\item \textbf{Comprehensive evaluation.}
+	Benchmarked on SQuAD, RepoQA, and SWE-bench Verified with task- and token-level metrics and efficiency profiling (\Cref{cha:evaluation,cha:experiments}).
+	
+	\item \textbf{Empirical findings across regimes.}
+	Established that ICAE improves QA accuracy at moderate compression, maintains high-fidelity code reconstruction with task-specific FT, and lengthens trajectories with modest speedups, but reduces end-to-end problem-solving on SWE-bench Verified under the tested training configuration (\Cref{tab:qwen_icae_variants_absolute}; \Cref{fig:squad_results,fig:repoqa_metrics,fig:bleu-boxplot-combined,fig:boxplot-stepcount}).
+	
+	\item \textbf{Negative results for simple alternatives.}
+	Documented failures of training-free mixtures and small projectors for condensation (\Cref{tab:avg_variants}; \Cref{fig:squad_metrics}).
+	
+	\item \textbf{Open resources.}
+	Released a modular reimplementation, configurations, and logs to support reproducibility (\Cref{sec:open_source}).
+\end{enumerate}
 
-% ========================================
-% SECTION 7.2: SYNTHESIS OF FINDINGS
-% ========================================
 \section{Synthesis of Findings}
 
-Describe the conclusions of all the findings (additional experiments)
+\textbf{RQ1 --- Longer trajectories.}
+Implicit context condensation increased the number of agent steps before context overflow (113 vs.\ 81 on average) and reduced per-call latency by $\sim$10\%.
+Thus, the method does allow completion of longer trajectories under a fixed context window, and it improves efficiency.
+However, these benefits did not raise the solve rate on SWE-bench Verified in this setting (\Cref{tab:qwen_icae_variants_absolute}; \Cref{fig:boxplot-stepcount}).
 
-% ========================================
-% SECTION 7.3: POSITIONING THE WORK
-% ========================================
-\section{Positioning the Work}
+\textbf{RQ2 --- Transfer from standard NLP to agentic SWE.}
+Performance gains observed on SQuAD and preserved fidelity on RepoQA did not transfer to end-to-end SWE-bench Verified.
+The model learned to predict next actions well on static trajectories (higher BLEU) yet under-resolved tasks when its own actions shaped subsequent observations (\Cref{fig:squad_results,fig:repoqa_metrics} vs.\ \Cref{fig:bleu-boxplot-combined}).
+This gap highlights the difference between offline imitation and online, multi-turn control in software-engineering environments (\Cref{sec:rq2_performance_domains}).
 
-I plan to make a big analysis of this work and it's position in the field and add it here + probably a picture.
+\textbf{Overall interpretation.}
+ICAE-style implicit condensation is suitable when the goal is to read more context or run longer with moderate accuracy demands, and it is effective for extractive QA and code reconstruction with task-specific fine-tuning.
+In contrast, for software-engineering agents that must plan, act, and recover from their own intermediate outputs, the present configuration ($4\times$ compression; LoRA-only encoder; disabled reasoning) loses information relevant to downstream decision making.
+The limitations chapter lists concrete avenues for future research (full-parameter fine-tuning of the encoder, higher-fidelity AE for code, adaptive memory sizing, enabling reasoning) that follow directly from the observed failure modes and should likely address the current shortcomings (\Cref{sec:limitations,sec:kv_caching,sec:comp_resources}).
+
+In summary, the approach allows agents to run longer and faster, works for QA, works for code reconstruction, and does not improve (and in this setup harms) end-to-end SWE-bench solve rates.
