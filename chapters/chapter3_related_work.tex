@@ -8,7 +8,7 @@ We review several distinct lines of research to clarify our contribution and jus
 The reviewed approaches can be broadly categorized into: 1) implicit, embedding-space context compression; 2) explicit, token-level context reduction; 3) continuous representations for reasoning; 4) architectural modifications for long-context memory; and 5) post-training on agent trajectories.
 
 \paragraph{In-Context Autoencoder (ICAE)}
-As an approach to implicit context compression, the In-Context Autoencoder (ICAE) introduced by \textcite{ge_-context_2024} is an encoder–decoder scheme that compresses an input context into a fixed number of ``memory slots'' (continuous tokens) and conditions the base LLM on these slots instead of the original prompt.
+As an approach to implicit context compression, the In-Context Autoencoder (ICAE) introduced by \textcite{ge2023context} is an encoder–decoder scheme that compresses an input context into a fixed number of ``memory slots'' (continuous tokens) and conditions the base LLM on these slots instead of the original prompt.
 The number of these memory slots is a key hyperparameter that must be determined prior to pretraining. To handle inputs that exceed its training context length, ICAE employs a chunking strategy: the long context is segmented, each chunk is independently compressed into a span of memory slots, and these spans are then concatenated.
 In pretraining, the encoder produces $k$ memory tokens from a longer input, and the decoder is trained to reconstruct the original text; at inference, downstream tasks are solved by attending to the memory tokens rather than the raw prompt.
 The paper studies both pretrained ICAE (autoencoding + language-modeling objective) and fine-tuned ICAE for instruction-following, showing that memory tokens serve as a compact, trainable context representation.
@@ -19,26 +19,26 @@ When applied to instruction-following tasks, ICAE memory tokens are competitive 
 Moreover, this compression leads to significant latency improvements, with measured end-to-end speedups reaching 2.2–3.6$\times$ in cacheable regimes where memory slots are pre-computed.
 
 ICAE is the most direct prior for our implicit compression: we also encode contexts into continuous embeddings and condition the model on the learned memory tokens, but extend the setting to newer backbones and coding/agentic workloads (SWE-style trajectories).
-We also emphasize agent-trajectory finetuning over SWE-bench-like tasks, which \textcite{ge_-context_2024} did not target; for later chapters, this section supplies the technical background (slots, compression ratios, fidelity–throughput trade-offs) we build on.
+We also emphasize agent-trajectory finetuning over SWE-bench-like tasks, which \textcite{ge2023context} did not target; for later chapters, this section supplies the technical background (slots, compression ratios, fidelity–throughput trade-offs) we build on.
 
 \paragraph{LLMLingua-2}
-\textcite{pan2024llmlingua2} introduce LLMLingua-2, a task-agnostic method for explicit prompt compression.
+\textcite{pan2024llmlingua} introduce LLMLingua-2, a task-agnostic method for explicit prompt compression.
 It moves beyond entropy-based pruning by training a dedicated token classifier to identify and discard redundant tokens.
 This compressor—a small, efficient Transformer encoder like XLM-RoBERTa—learns from a dataset created via data distillation from GPT-4, making the approach model-agnostic and applicable to black-box LLMs.
 By leveraging bidirectional context, it can more accurately assess token importance than causal models.
 
 The method demonstrates impressive performance, achieving substantial compression with minimal fidelity loss.
-On the in-domain MeetingBank benchmark, \textcite{pan2024llmlingua2} achieve 3.1$\times$ compression (from 3,003 to 970 tokens) while scoring 86.9\% EM on a QA task, nearly matching the original prompt's 87.8\%.
+On the in-domain MeetingBank benchmark, \textcite{pan2024llmlingua} achieve 3.1$\times$ compression (from 3,003 to 970 tokens) while scoring 86.9\% EM on a QA task, nearly matching the original prompt's 87.8\%.
 For reasoning, they achieve 79.1\% EM on GSM8K with 5$\times$ compression, on par with the full uncompressed baseline.
 This efficiency translates to significant end-to-end latency reductions of 1.6$\times$ to 2.9$\times$.
 Notably, when paired with Mistral-7B, the compressed prompt outperforms the original on QA (76.2\% vs. 67.0\%), suggesting it can help models that are less adept at handling long contexts.
 
-The approach of \textcite{pan2024llmlingua2}, however, is fundamentally extractive and therefore lossy, which contrasts with our implicit, continuous compression.
+The approach of \textcite{pan2024llmlingua}, however, is fundamentally extractive and therefore lossy, which contrasts with our implicit, continuous compression.
 Because it operates by deleting surface tokens, it risks removing subtle syntactic or semantic details that are critical in code generation and repair.
 Furthermore, its evaluation focuses on single-turn NLP tasks like QA and summarization, whereas our work targets the distinct challenges of multi-turn, agentic software engineering trajectories.
 
 \paragraph{SlimCode}
-\textcite{yin2024slimcode} propose SlimCode, an explicit and model-agnostic method that simplifies code by removing tokens based on their intrinsic properties rather than model-specific attention scores.
+\textcite{wang2024natural} propose SlimCode, an explicit and model-agnostic method that simplifies code by removing tokens based on their intrinsic properties rather than model-specific attention scores.
 The approach categorizes code tokens by lexical (e.g., symbols, identifiers), syntactic (e.g., control structures, method signatures), and semantic levels.
 Through empirical analysis, the authors establish a token importance hierarchy, where method signatures and identifiers are most critical, while symbols are least impactful.
 Based on this ranking, a 0-1 knapsack-style algorithm is used to discard the lowest-value tokens, aiming to reduce input length while preserving semantic integrity.
@@ -46,16 +46,16 @@ Based on this ranking, a 0-1 knapsack-style algorithm is used to discard the low
 The method's effectiveness is demonstrated by its ability to significantly reduce computational load with minimal performance degradation.
 For instance, removing symbol tokens, which constitute approximately 51\% of the code, reduces training time by a similar margin but only lowers code search performance (Mean Reciprocal Rank, MRR) by 2.83\% and summarization (BLEU-4) by 0.59\%.
 In contrast, removing identifiers, which make up only 15.5\% of tokens, results in a more substantial performance drop of 12.5\% in MRR.
-Overall, \textcite{yin2024slimcode} outperform the prior state-of-the-art, DietCode, by 9.46\% on MRR and 5.15\% on BLEU, while being up to 133 times faster at the pruning process itself.
+Overall, \textcite{wang2024natural} outperform the prior state-of-the-art, DietCode, by 9.46\% on MRR and 5.15\% on BLEU, while being up to 133 times faster at the pruning process itself.
 Furthermore, when applied to GPT-4, SlimCode can reduce API costs by 24\% and inference time by 27\%, and can even yield slight performance improvements at high compression ratios.
 
-While \textcite{yin2024slimcode} offer a powerful, model-agnostic solution for code understanding tasks and cost reduction, their explicit, token-deleting nature makes it less suitable for our focus on agentic coding.
+While \textcite{wang2024natural} offer a powerful, model-agnostic solution for code understanding tasks and cost reduction, their explicit, token-deleting nature makes it less suitable for our focus on agentic coding.
 By deleting surface tokens, this approach risks removing subtle syntactic or semantic constraints that are crucial for complex, multi-turn code generation and repair tasks.
 Our work instead focuses on implicit compression in the embedding space, trained end-to-end on coding trajectories to better align with the demands of generative and tool-use scenarios.
 
 \paragraph{Soft Tokens}
 Another line of research uses continuous representations for reasoning.
-For instance, \textcite{chatzianastasis2024soft} introduce a scalable method to train models on continuous or ``soft'' chain-of-thought (CoT) trajectories using reinforcement learning (RL).
+For instance, \textcite{butt2025soft} introduce a scalable method to train models on continuous or ``soft'' chain-of-thought (CoT) trajectories using reinforcement learning (RL).
 Their approach avoids costly distillation from discrete CoTs by injecting noise into input embeddings, which enables exploration and allows for learning long continuous thought vectors.
 The work compares this soft/fuzzy training against traditional hard-token CoT across Llama and Qwen models on mathematical reasoning benchmarks like GSM8K and MATH, studying both performance and out-of-distribution (OOD) robustness.
 
@@ -76,7 +76,7 @@ We then fine-tune on agentic coding trajectories, a different domain from the ma
 Nonetheless, we build on the shared finding that continuous latent representations can be effectively trained and then decoded using standard hard inference, a principle that holds for our memory tokens as well.
 
 \paragraph{Infini-Attention}
-As an architectural modification for long contexts, Infini-attention \parencite{laskin2024leave} equips transformers with a compressive memory pathway that summarizes long-range keys/values while keeping local attention intact.
+As an architectural modification for long contexts, Infini-attention \parencite{munkhdalai2024leave} equips transformers with a compressive memory pathway that summarizes long-range keys/values while keeping local attention intact.
 The resulting Infini-Transformer aims to maintain useful information over very long contexts by updating a compact memory state at each segment, achieving a theoretically infinite context window without quadratic growth.
 The mechanism combines a standard local dot-product attention with a long-term compressive memory that is updated incrementally using a linear attention mechanism.
 A learned gating scalar then mixes the outputs of the local attention and the compressive memory, allowing the model to balance between short-term and long-term context.
@@ -89,10 +89,10 @@ Performance further improves when trained on sequences up to 100K tokens, with p
 The model demonstrates remarkable long-context capabilities, achieving near-perfect passkey retrieval at sequence lengths of 1 million tokens and setting a new state-of-the-art on a 500K-token book summarization task.
 These gains, however, require modifying the model's architecture and either pretraining from scratch or undergoing extensive continued pre-training.
 Our approach, in contrast, remains compatible with existing LLMs by using ICAE-style memory tokens.
-We focus on finetuning these representations for agentic coding tasks, whereas \textcite{laskin2024leave} offer a complementary solution for scenarios where processing raw, ultra-long contexts is indispensable.
+We focus on finetuning these representations for agentic coding tasks, whereas \textcite{munkhdalai2024leave} offer a complementary solution for scenarios where processing raw, ultra-long contexts is indispensable.
 
 \paragraph{AgentTuning}
-To improve the agentic capabilities of open-source models via supervision, \textcite{zeng2023agenttuning} propose a method centered on fine-tuning LLMs with a specialized dataset of agent interaction trajectories.
+To improve the agentic capabilities of open-source models via supervision, \textcite{zeng2024agenttuning} propose a method centered on fine-tuning LLMs with a specialized dataset of agent interaction trajectories.
 Their core contribution is the creation of AgentInstruct, a high-quality dataset of 1,866 interaction trajectories from six diverse agent tasks, generated and verified using GPT-4.
 The authors then employ a hybrid instruction-tuning strategy, mixing the agent-specific data with general-domain instructions to create the AgentLM series of models, based on Llama-2.
 
@@ -102,26 +102,26 @@ A key finding from their ablation studies is that general-domain data is crucial
 The work suggests that this fine-tuning process helps to "activate" latent agent capabilities in the base model rather than merely overfitting to specific tasks.
 
 We similarly fine-tune on stepwise trajectories, but our work differs in its focus and domain.
-\textcite{zeng2023agenttuning} aim to improve agent behavior but do not address the challenge of long-context compression for complex code-related tasks.
+\textcite{zeng2024agenttuning} aim to improve agent behavior but do not address the challenge of long-context compression for complex code-related tasks.
 Our method integrates this concept of trajectory-based finetuning with an ICAE-style memory system, specifically targeting the bottlenecks of long code contexts and multi-turn interactions found in software engineering scenarios.
 
 \section*{Positioning Summary}
 
 \textbf{Synthesis of Prior Work}
 The literature presents several distinct strategies for managing long contexts.
-Explicit methods such as LLMLingua-2 \parencite{pan2024llmlingua2} and SlimCode \parencite{yin2024slimcode} achieve compression by selectively removing tokens, offering model-agnostic benefits for tasks like question answering and code summarization, but risk information loss for generative tasks.
-Architectural solutions like Infini-attention \parencite{laskin2024leave} fundamentally alter the Transformer to handle virtually infinite sequences, but require extensive pre-training and deviate from standard model structures.
-In contrast, methods like ICAE \parencite{ge_-context_2024} and those for continuous reasoning traces \parencite{chatzianastasis2024soft} explore the use of continuous, learned representations—either as compressed context summaries or as reasoning traces—demonstrating that latent vectors can effectively encode complex information without architectural changes.
-Finally, AgentTuning \parencite{zeng2023agenttuning} highlights the value of post-training on agent trajectories to improve tool-use capabilities, but does not address the input context bottleneck.
+Explicit methods such as LLMLingua-2 \parencite{pan2024llmlingua} and SlimCode \parencite{wang2024natural} achieve compression by selectively removing tokens, offering model-agnostic benefits for tasks like question answering and code summarization, but risk information loss for generative tasks.
+Architectural solutions like Infini-attention \parencite{munkhdalai2024leave} fundamentally alter the Transformer to handle virtually infinite sequences, but require extensive pre-training and deviate from standard model structures.
+In contrast, methods like ICAE \parencite{ge2023context} and those for continuous reasoning traces \parencite{butt2025soft} explore the use of continuous, learned representations—either as compressed context summaries or as reasoning traces—demonstrating that latent vectors can effectively encode complex information without architectural changes.
+Finally, AgentTuning \parencite{zeng2024agenttuning} highlights the value of post-training on agent trajectories to improve tool-use capabilities, but does not address the input context bottleneck.
 
 \textbf{Our Contribution.}
 This thesis integrates and extends concepts from these parallel lines of research.
-Our primary contribution is the novel combination of three key elements: (i) \textit{implicit, embedding-space compression}, following the In-Context Autoencoder (ICAE) paradigm \parencite{ge_-context_2024}, to create a compact and learnable representation of long code contexts; (ii) \textit{agent-trajectory finetuning}, inspired by \textcite{zeng2023agenttuning}, but specifically tailored to the domain of multi-step software engineering tasks; and (iii) \textit{a specialized evaluation setting} based on SWE-bench, which requires robust handling of long, evolving codebases and complex tool interactions.
+Our primary contribution is the novel combination of three key elements: (i) \textit{implicit, embedding-space compression}, following the In-Context Autoencoder (ICAE) paradigm \parencite{ge2023context}, to create a compact and learnable representation of long code contexts; (ii) \textit{agent-trajectory finetuning}, inspired by \textcite{zeng2024agenttuning}, but specifically tailored to the domain of multi-step software engineering tasks; and (iii) \textit{a specialized evaluation setting} based on SWE-bench, which requires robust handling of long, evolving codebases and complex tool interactions.
 This synthesis distinguishes our work from prior art, which has not jointly addressed implicit compression and agentic fine-tuning for code.
 
 \textbf{Rationale for Methodological Choices.}
 Our decision to pursue an ICAE-based approach over alternatives is deliberate.
-We avoid explicit token deletion \parencite{pan2024llmlingua2, yin2024slimcode} because agentic code generation is highly sensitive to subtle syntactic and semantic details that pruning may inadvertently remove.
+We avoid explicit token deletion \parencite{pan2024llmlingua, wang2024natural} because agentic code generation is highly sensitive to subtle syntactic and semantic details that pruning may inadvertently remove.
 While effective for code understanding, such methods are less suitable for iterative code repair.
-We also forgo architectural modifications \parencite{laskin2024leave} to ensure our solution remains compatible with a wide range of existing, publicly available LLMs, thereby maximizing applicability and leveraging the benefits of KV-caching for the compressed memory tokens.
+We also forgo architectural modifications \parencite{munkhdalai2024leave} to ensure our solution remains compatible with a wide range of existing, publicly available LLMs, thereby maximizing applicability and leveraging the benefits of KV-caching for the compressed memory tokens.
 Our method therefore pairs the context-handling efficiency of ICAE with the demonstrated effectiveness of trajectory finetuning to create an agent optimized for long-context software engineering challenges.

@@ -12,17 +12,17 @@
 % ========================================
 \section{ICAE for Agentic Context Management}
 
-The In-Context Autoencoder (ICAE) \cite{ge_-context_2024} consists of two modules: a trainable encoder (typically a LoRA-adapted LLM) and a fixed decoder (the base LLM itself).
+The In-Context Autoencoder (ICAE) \cite{ge2023context} consists of two modules: a trainable encoder (typically a LoRA-adapted LLM) and a fixed decoder (the base LLM itself).
 The encoder processes a long context and generates a fixed number of learnable memory tokens.
 This design turns a long, potentially unwieldy context into a compact representation that the decoder can efficiently consume, improving latency and memory footprint while preserving fidelity for downstream tasks.
-The number of memory tokens controls the compression ratio, and their placement influences how the decoder accesses the stored information \cite{ge_-context_2024}.
+The number of memory tokens controls the compression ratio, and their placement influences how the decoder accesses the stored information \cite{ge2023context}.
 
 Figure~\ref{fig:icae} depicts the encoder–decoder split.
 The encoder ingests the full context and produces memory tokens.
 The frozen decoder then receives these tokens and a prompt to generate a continuation.
 During pretraining, the encoder is optimized to enable the decoder to reconstruct the original text.
 During fine-tuning, the objective shifts to solving a downstream task (e.g., generating a tool call) using the compressed representation.
-Parameter-efficient methods like LoRA \cite{hu2021lora} are used to adapt the encoder while keeping the base model's capabilities intact.
+Parameter-efficient methods like LoRA \cite{hu2022lora} are used to adapt the encoder while keeping the base model's capabilities intact.
 
 \begin{figure}[hbt]
   \centering
@@ -70,7 +70,7 @@ This loss is backpropagated through both the decoder and encoder to update only 
 \end{figure}
 
 \subsection{Pretraining (PT)}
-The first stage follows the original ICAE formulation~\cite{ge_-context_2024}, pretraining the encoder on a large, general-purpose text corpus.
+The first stage follows the original ICAE formulation~\cite{ge2023context}, pretraining the encoder on a large, general-purpose text corpus.
 Two self-supervised objectives are used in a 50/50 mix:
 \begin{enumerate}[label=(\roman*)]
     \item \textbf{Autoencoding (AE)}, where ICAE restores the original input text from its memory slots. This task is signaled by a special \texttt{<AE>} token, as conceptually illustrated in Figure~\ref{fig:icae}.
@@ -98,9 +98,9 @@ For example, consider the following trajectory:
   \item \textbf{Action 1} (text): e.g., \texttt{bash: ls -la}.
   \item \textbf{Observation 1} (short text, $<256$ tokens): directory listing, kept as-is.
   \item \textbf{Action 2} (text): e.g., \texttt{str\_replace\_editor: view file.py}.
-  \item \colorbox{yellow}{\textbf{Observation 2} (long text): entire file content, compressed into memory tokens.}
+  \colorbox{yellow}{\textbf{Observation 2} (long text): entire file content, compressed into memory tokens.}
   \item \textbf{Action 3} (text): e.g., \texttt{str\_replace\_editor: str\_replace ...}.
-  \item \colorbox{yellow}{\textbf{Observation 3} (long text): edit confirmation with context, again compressed into memory tokens.}
+  \colorbox{yellow}{\textbf{Observation 3} (long text): edit confirmation with context, again compressed into memory tokens.}
   \item \textbf{Action 4} (text): e.g., \texttt{bash: pytest}.
   \item \textbf{Observation 4} (short text): test results summary, kept as text.
   \item \textbf{Action 5} (text): \texttt{submit}.
@@ -111,9 +111,9 @@ The model then is able to predict actions from a history where long observations
 
 \subsection{Training Process and Model Variants}
 
-Figure~\ref{fig:training-process-overview} provides a comprehensive overview of the full training and evaluation pipeline, illustrating how each of our model variants is derived. The starting point for all variants is a standard, pretrained \texttt{Qwen3-8B} model~\cite{qwen3_technical_report}, which we refer to as the \texttt{Baseline}. This is a ready-to-use model, not one with random weights.
+Figure~\ref{fig:training-process-overview} provides a comprehensive overview of the full training and evaluation pipeline, illustrating how each of our model variants is derived. The starting point for all variants is a standard, pretrained \texttt{Qwen3-8B} model~\cite{yang2025qwen3}, which we refer to as the \texttt{Baseline}. This is a ready-to-use model, not one with random weights.
 
-The figure illustrates two parallel training paths. The first path is for our ICAE model. The \texttt{Baseline} model is used to initialize the ICAE encoder and decoder. In the Pretraining (PT) stage, we train the LoRA weights of the encoder on the SlimPajama-6B dataset~\cite{together2023redpajama}, resulting in the \texttt{ICAE-PT} model. This model is then fine-tuned on the agentic trajectories dataset, yielding the final \texttt{ICAE-PT+FT} model. Crucially, for both ICAE training stages, only the encoder's LoRA weights are updated, while the base Qwen3 model used as the decoder remains frozen.
+The figure illustrates two parallel training paths. The first path is for our ICAE model. The \texttt{Baseline} model is used to initialize the ICAE encoder and decoder. In the Pretraining (PT) stage, we train the LoRA weights of the encoder on the SlimPama-6B dataset~\cite{weber2024redpajama}, resulting in the \texttt{ICAE-PT} model. This model is then fine-tuned on the agentic trajectories dataset, yielding the final \texttt{ICAE-PT+FT} model. Crucially, for both ICAE training stages, only the encoder's LoRA weights are updated, while the base Qwen3 model used as the decoder remains frozen.
 
 The second path is for a comparative baseline. The original \texttt{Baseline} Qwen3 model is directly fine-tuned with LoRA on the agentic trajectories dataset. This produces the \texttt{Baseline+FT} model. This allows us to compare our two-stage ICAE approach against a standard parameter-efficient fine-tuning of a base language model on the target task.
 

@@ -12,12 +12,12 @@ Self-attention mechanism is well-known and described in detail in many articles.
 Thus, we focus on how positional signals influence which tokens are likely to interact, and why the layout of position identifiers (position IDs) matters for context compression.
 
 Transformers are permutation-invariant over their inputs unless augmented with positional information.
-In the original formulation, absolute position encodings \cite{vaswani_attention_2017} (either fixed sinusoidal or learned) are added to token embeddings so that attention has access to token order.
+In the original formulation, absolute position encodings \cite{vaswani2017attention} (either fixed sinusoidal or learned) are added to token embeddings so that attention has access to token order.
 Subsequent works replace addition with position-dependent biases or transformations that make attention explicitly sensitive to token distances:
 
 \begin{itemize}
-  \item Relative position representations add an index-dependent bias to the attention logits \cite{shaw_relative_2018}.
-  \item Rotary position embeddings (RoPE) apply a rotation to queries and keys so that their inner product becomes a function of relative displacement \cite{su_roformer_2021}.
+  \item Relative position representations add an index-dependent bias to the attention logits \cite{shaw2018self}.
+  \item Rotary position embeddings (RoPE) apply a rotation to queries and keys so that their inner product becomes a function of relative displacement \cite{su2024roformer}.
 \end{itemize}
 
 Formally, for queries \(Q\), keys \(K\), and values \(V\), attention often takes the form
@@ -38,11 +38,11 @@ The key property is that the inner product becomes
 \langle Q_i, K_j \rangle = \langle R_i q_i, R_j k_j \rangle = \langle q_i, R_{j-i} k_j \rangle,
 \]
 which depends only on the relative offset \(j-i\).
-This is achieved by constructing \(R_m\) as a block-diagonal matrix of 2D rotations with frequencies that decrease geometrically across dimensions, allowing the model to capture both short- and long-range dependencies through different frequency components \cite{su_roformer_2021}.
+This is achieved by constructing \(R_m\) as a block-diagonal matrix of 2D rotations with frequencies that decrease geometrically across dimensions, allowing the model to capture both short- and long-range dependencies through different frequency components \cite{su2024roformer}.
 
 These mechanisms create a local inductive bias: tokens that are closer in position tend to have higher prior attention affinity.
 This has direct implications for compression with special tokens ("memory", or compressed tokens): where those tokens are placed in position-ID space controls which parts of the sequence they can most easily interact with.
-Empirically, assigning position IDs to minimize distance between compressed tokens and the tokens they must interface with (either source content or the downstream prompt) improves effectiveness \cite{zhao_position_2025}.
+Empirically, assigning position IDs to minimize distance between compressed tokens and the tokens they must interface with (either source content or the downstream prompt) improves effectiveness \cite{zhao2024position}.
 
 \textbf{TODO: write about it more!!!
 we would talk about it later in the thesis?}
@@ -52,8 +52,8 @@ we would talk about it later in the thesis?}
 % ========================================
 \section{Parameter-Efficient LLM Fine-Tuning}
 
-There are many techniques to efficiently fine-tune LLMs, but we focus on Low-Rank Adaptation (LoRA) \cite{hu2021lora}.
-LoRA freezes the pre-trained weight matrices and introduces trainable low-rank updates, yielding substantial parameter savings while preserving the base model’s knowledge \cite{hu2021lora}.
+There are many techniques to efficiently fine-tune LLMs, but we focus on Low-Rank Adaptation (LoRA) \cite{hu2022lora}.
+LoRA freezes the pre-trained weight matrices and introduces trainable low-rank updates, yielding substantial parameter savings while preserving the base model’s knowledge \cite{hu2022lora}.
 Consider a linear projection with base weight \(W_0 \in \mathbb{R}^{d_{\text{out}}\times d_{\text{in}}}\).
 LoRA parameterizes an additive update
 \[
@@ -67,14 +67,14 @@ with a scalar scaling \(\alpha\) controlling the update magnitude.
 Only \(A\) and \(B\) are trained; \(W_0\) remains frozen.
 The trainable parameter count becomes \(r(d_{\text{in}} + d_{\text{out}})\), dramatically less than \(d_{\text{in}}\, d_{\text{out}}\) for typical ranks (e.g., tens to a few hundreds).
 
-In Transformer blocks, LoRA adapters are commonly inserted in attention projections (query and value projections, see \cite{hu2021lora}) and optionally in output or feed-forward projections, trading off capacity and efficiency.
+In Transformer blocks, LoRA adapters are commonly inserted in attention projections (query and value projections, see \cite{hu2022lora}) and optionally in output or feed-forward projections, trading off capacity and efficiency.
 The benefits include:
 \begin{itemize}
     \item parameter efficiency and reduced activation memory
     \item modularity—multiple task-specific adapters can be swapped on top of a single base model
     \item faster fine-tuning
 \end{itemize}
-Practical considerations include choosing the rank \(r\), the scaling \(\alpha\), as well as target layers to balance adaptation capacity and generalization \cite{hu2021lora}.
+Practical considerations include choosing the rank \(r\), the scaling \(\alpha\), as well as target layers to balance adaptation capacity and generalization \cite{hu2022lora}.
 
 % ========================================
 % SECTION 2.3: AGENTIC SETUP AND TOOL USE
@@ -82,7 +82,7 @@ Practical considerations include choosing the rank \(r\), the scaling \(\alpha\)
 \section{Agentic Setup and Tool Use}
 
 We use "agentic" to refer to autonomous decision-making loops in which an LLM plans, invokes tools, and incorporates observations to pursue goals.
-This paradigm is formalized in the ReAct (Reasoning and Acting) framework \cite{yao_react_2022}, which interleaves reasoning traces with action execution.
+This paradigm is formalized in the ReAct (Reasoning and Acting) framework \cite{yao2022react}, which interleaves reasoning traces with action execution.
 At time \(t\), the agent conditions on a history \(H_t = [(a_1,o_1),\dots,(a_{t-1},o_{t-1})]\) and a task-specific system prompt \(s\) to select an action \(a_t\).
 The environment (or tool) returns an observation \(o_t\), which is appended to the history.
 This action-observation loop continues until termination.
@@ -97,12 +97,12 @@ stdout/err, JSON, file diffs, retrieval snippets, etc.) is captured.
   \item Termination or next step: the agent either returns a final answer or continues the loop.
 \end{enumerate}
 
-A prominent benchmark for evaluating such agentic capabilities is the Berkeley Function Calling Leaderboard (BFCL) \cite{patil2025bfcl}.
+A prominent benchmark for evaluating such agentic capabilities is the Berkeley Function Calling Leaderboard (BFCL) \cite{patilberkeley}.
 BFCL provides a standardized suite of tasks to measure an LLM's proficiency in translating natural language requests into precise, executable tool calls.
 The tasks range from simple, single-function invocations to complex scenarios requiring multi-step reasoning and tool chaining.
-This benchmark exemplifies the practical challenges in agentic systems, where models must correctly interpret user intent and interact with external APIs or codebases \cite{patil2025bfcl}.
+This benchmark exemplifies the practical challenges in agentic systems, where models must correctly interpret user intent and interact with external APIs or codebases \cite{patilberkeley}.
 
-\textbf{Agentic toolcall examples (from \cite{patil2025bfcl}):}
+\textbf{Agentic toolcall examples (from \cite{patilberkeley}):}
 \begin{itemize}
   \item Vehicle status lookup: \texttt{vehicle.getStatus(vin="WVWZZZ...")} — returns battery level, tire pressure, and last seen location.
   \item Driving route plan: \texttt{maps.route(origin="Munich", dest="Berlin", mode="driving")} — computes ETA and step-by-step directions.
@@ -132,9 +132,9 @@ The core capabilities of LLMs in the context of software engineering include:
   \item \textbf{Code Simplification:} Refactoring code to be more readable/efficient or shorter without changing its functionality.
   \item \textbf{Code Translation:} Migrating code from one programming language to another (e.g., Python to JavaScript).
   \item \textbf{Bug Detection and Repair:} Identifying potential bugs in a piece of code and suggesting fixes.
-  \item \textbf{Code Editing:} Modifying existing code based on high-level instructions \cite{geeksforgeeks_cursor_2025}.
+  \item \textbf{Code Editing:} Modifying existing code based on high-level instruction.
   \item \textbf{Code Documentation and Summarization:} Generating natural language descriptions from code, such as docstrings or summaries, and answering questions about its functionality.
-  \item \textbf{Agentic Code Tasks:} Autonomously planning and executing complex, multi-step software engineering tasks \cite{learncursor_agent_2025}.
+  \item \textbf{Agentic Code Tasks:} Autonomously planning and executing complex, multi-step software engineering tasks.
 \end{itemize}
 
 These capabilities are often evaluated on benchmarks such as HumanEval \cite{chen2021evaluating} and MBPP (Mostly Basic Python Programming) \cite{austin2021program}, which test a model's ability to generate functionally correct code from specifications.

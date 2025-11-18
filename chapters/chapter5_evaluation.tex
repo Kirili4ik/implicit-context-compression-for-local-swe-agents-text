@@ -5,7 +5,7 @@
 \label{sec:datasets}
 
 \subsection{SWE-bench}
-We have chosen to use the SWE-bench~\cite{jimenez2024swebench} dataset for our experiments, as it is a well-known and popular benchmark for evaluating the performance of software engineering agents on real-world tasks.
+We have chosen to use the SWE-bench~\cite{jimenez2023swe} dataset for our experiments, as it is a well-known and popular benchmark for evaluating the performance of software engineering agents on real-world tasks.
 It contains approximately 3000 tasks sourced from real GitHub issues and pull requests from 12 popular Python repositories (e.g., django, matplotlib).
 Each task instance is defined by a "fail-to-pass" scenario: a test suite that fails on the repository state before a fix is applied and passes after.
 The agent's goal is to generate a patch that resolves the issue, making the test suite pass.
@@ -21,13 +21,13 @@ Our metric of interest is the percentage of solved instances, which is reported 
 \label{sec:agentic_trajectories_data}
 High-quality training data is crucial for fine-tuning capable software engineering agents. 
 We require expert demonstrations in the form of agentic trajectories.
-To generate them at scale, we use the data collected in~\cite{yang2025swesmith}.
+To generate them at scale, we use the data collected in~\cite{yang2025swe}.
 
 While SWE-smith provides the framework for generating tasks, we use it to generate expert trajectories for fine-tuning our agent. 
 Specifically, we use a powerful teacher model, Claude 3.7 Sonnet, to solve tasks collected by the authors and within the SWE-smith environment.
 The teacher model's interactions are recorded as trajectories. We only retain the successful trajectories, resulting in a high-quality dataset of approximately 5000 expert demonstrations.
 This filtering step is crucial to ensure that the agent learns from effective problem-solving strategies. 
-It is worth noting that there is currently no consensus in the research community on whether including unsuccessful trajectories is beneficial for training~\cite{zeng2023agenttuning, song2024agentbank}.
+It is worth noting that there is currently no consensus in the research community on whether including unsuccessful trajectories is beneficial for training~\cite{zeng2024agenttuning, song2024agentbank}.
 
 
 \paragraph{Interaction Protocol and Tools}
@@ -44,7 +44,7 @@ The available tools are:
 \end{itemize}
 
 The \texttt{str\_replace\_editor} is a critical tool that supports viewing, creating, and editing files. Its state persists across steps, enabling consistent multi-edit workflows. The editor exposes several commands, including \texttt{view}, \texttt{create}, \texttt{str\_replace}, \texttt{insert}, and \texttt{undo\_edit}. To ensure deterministic edits, the \texttt{str\_replace} command requires the \texttt{old\_str} argument to match one or more consecutive lines exactly, including all whitespace. The matched block is then replaced with the content of \texttt{new\_str}. Similarly, the \texttt{insert} command appends content after a specified line number. These precise controls are essential for making targeted changes to code.
-We intentionally did not want to complicate our research with more complex scaffolds like SWE-agent~\cite{yang2024sweagent} to focus on the core of the compression problem.
+We intentionally did not want to complicate our research with more complex scaffolds like SWE-agent~\cite{yang2024swe} to focus on the core of the compression problem.
 
 \subsection{SQuAD}
 To evaluate the general compression capabilities of our model beyond agentic tasks, we also test it on the Stanford Question Answering Dataset (SQuAD)~\cite{rajpurkar2016squad}.
@@ -53,7 +53,7 @@ The dataset was constructed by asking crowdworkers to pose up to five questions 
 For example, given the passage ``In meteorology, precipitation is any product of the condensation of atmospheric water vapor that falls under gravity,'' a corresponding question is ``What causes precipitation to fall?'' with the answer being the single word ``gravity'' extracted from the text.
 
 The choice of SQuAD is motivated by its widespread adoption and focus on extractive answers.
-In contrast, the original In-Context Autoencoder work~\cite{ge_-context_2024} used the PWC dataset, which is less common and focuses more on generating longer, abstractive answers rather than extracting specific spans of text.
+In contrast, the original In-Context Autoencoder work~\cite{ge2023context} used the PWC dataset, which is less common and focuses more on generating longer, abstractive answers rather than extracting specific spans of text.
 
 \subsection{RepoQA}
 To assess how well our compression method preserves high-fidelity information in code, we utilize the RepoQA benchmark~\cite{liu2024repoqa}.

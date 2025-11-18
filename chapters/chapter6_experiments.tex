@@ -70,7 +70,7 @@ The results establish that replacing discrete tokens with untrained condensed mi
 
 We as well investigate whether a trained, low-capacity projection module could learn to compress adjacent embedding vectors while preserving task-relevant information.
 We explore several architectural variants to map a pair of concatenated hidden vectors $[e_{2t-1}; e_{2t}]$ from $\mathbb{R}^{2d}$ to a single vector in $\mathbb{R}^{d}$.
-These variants included a simple \textbf{linear projector}, a shallow non-linear \textbf{MLP} (one to two layers with GELU activation), and a full \textbf{BERT encoder} \cite{devlin2018bert} to provide a higher-capacity compression mechanism.
+These variants included a simple \textbf{linear projector}, a shallow non-linear \textbf{MLP} (one to two layers with GELU activation), and a full \textbf{BERT encoder} \cite{devlin2019bert} to provide a higher-capacity compression mechanism.
 
 All experiments used the SQuAD context-embedding setting, with the base Qwen3-8B model frozen.
 Only the parameters of the projection module were trained via token-level cross-entropy on the answer generation task.
@@ -111,14 +111,14 @@ The methodology for this pretraining stage is conceptually outlined in Chapter~\
 The primary objective of this phase is to train the encoder to generate compressed representations from which the original text can be accurately reconstructed.
 
 
-The pretraining stage was performed on the dataset SlimPajama-6B \cite{together2023redpajama}\footnote{\url{https://huggingface.co/datasets/DKYoon/SlimPajama-6B}} using a combination of autoencoding and language modeling objectives.
+The pretraining stage was performed on the dataset SlimPajama-6B \cite{weber2024redpajama}\footnote{\url{https://huggingface.co/datasets/DKYoon/SlimPajama-6B}} using a combination of autoencoding and language modeling objectives.
 It is a common text dataset, that is used for pretraining LLMs, consisting of 6 billion tokens (a random 1\% of the original 627B tokens).
-The dataset that authors used in the ICAE paper \cite{ge_-context_2024} "The Pile" is unavailable.
+The dataset that authors used in the ICAE paper \cite{ge2023context} "The Pile" is unavailable.
 Following the original ICAE methodology, the training objective was a 50/50 mix of an autoencoding (AE) task, signaled by a special \texttt{<AE>} token, and a language modeling (LM) task, which used no special token.
 The AE process is conceptually illustrated in Figure~\ref{fig:icae}.
 
 On Figure~\ref{fig:loss_final} you can notice the sudden drop of the loss.
-This is a phenomenon found in \cite{zhao_position_2025}.
+This is a phenomenon found in \cite{zhao2024position}.
 It appears due to the modification of positional encodings for the memory tokens.
 We see the effect being the same as described by the authors.
 In our experiments, it only appears if we apply the Position ID manipulation.
@@ -214,18 +214,18 @@ In line with internal feedback, these AE findings suggest that the current pretr
 % ========================================
 \section{ICAE Fine-Tuning and Results on Question Answering}
 
-While the original ICAE work \cite{ge_-context_2024} demonstrated promising results on their proprietary PWC dataset, we sought to validate these findings on a well-established benchmark to ensure generalizability and facilitate fair comparison with existing approaches.
+While the original ICAE work \cite{ge2023context} demonstrated promising results on their proprietary PWC dataset, we sought to validate these findings on a well-established benchmark to ensure generalizability and facilitate fair comparison with existing approaches.
 To address the limitation of the authors'-crafted PWC dataset, we conducted fine-tuning experiments on the Stanford Question Answering Dataset (SQuAD) \cite{rajpurkar2016squad}, a widely recognized benchmark in the question answering literature that provides standardized evaluation protocols and enables reproducible comparisons.
 
 During fine-tuning on SQuAD, the encoder compresses the context while the question remains uncompressed (text-compressed-text format).
 The decoder generates answers from this mixed representation.
-We use identical LoRA hyperparameters as in \cite{ge_-context_2024}.
+We use identical LoRA hyperparameters as in \cite{ge2023context}.
 
 To establish a comprehensive evaluation baseline, we compare four distinct model configurations that systematically vary the training procedure and compression strategy.
 First, we evaluate the base Mistral-7B model \cite{jiang2023mistral} without any fine-tuning to establish the zero-shot performance ceiling.
 Second, we construct a LoRA fine-tuned baseline where we apply LoRA fine-tuning directly to Mistral-7B on the SQuAD dataset without any compression mechanism, thus representing the standard approach without context condensation.
 This baseline operates without an encoder-decoder structure, functioning as a conventional LLM fine-tuned for question answering at full context length.
-Third, we evaluate the ICAE model fine-tuned on PWC as provided by the original authors \cite{ge_-context_2024}, which represents their reported best configuration.
+Third, we evaluate the ICAE model fine-tuned on PWC as provided by the original authors \cite{ge2023context}, which represents their reported best configuration.
 Finally, we train our own ICAE variant by fine-tuning the pretrained encoder-decoder architecture on SQuAD using identical training code and hyperparameters to those employed by the authors for PWC fine-tuning.
 This parallel setup enables direct comparison while controlling for implementation differences.
 
@@ -328,7 +328,7 @@ Figures~\ref{fig:icae-agent-training-overview} and~\ref{fig:icae-agent-training-
 Here, we evaluate the performance of this method on the SWE-bench Verified dataset.
 
 \subsection{Experimental Setup}
-We reimplemented the ICAE framework from scratch, building upon the original architecture \cite{ge_-context_2024} with several modifications for improved efficiency and reproducibility.
+We reimplemented the ICAE framework from scratch, building upon the original architecture \cite{ge2023context} with several modifications for improved efficiency and reproducibility.
 Our implementation uses the Qwen3 model family (specificaly Qwen3-8B) as the base LLM, with LoRA adaptation applied to the attention matrices (q\_proj and v\_proj) using a rank of 128 (see all hyperparameters in Appendix~\ref{app:training_details}).
 To make things simpler, we explicitly disable "thinking", more on that can be found in Appendix~\ref{sec:disabling_thinking}.
 The pretraining and fine-tuning processes are described in more detail in Chapter~\ref{cha:methods}.

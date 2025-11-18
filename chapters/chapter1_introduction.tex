@@ -6,7 +6,7 @@
 \section{The Context Length Challenge in Large Language Models}
 
 The ability of Large Language Models (LLMs) to effectively process long sequences of input text is fundamentally constrained by their architecture.
-Specifically, Transformer-based LLMs face inherent limitations due to the self-attention mechanism, which scales quadratically with the number of tokens \cite{vaswani_attention_2017}.
+Specifically, Transformer-based LLMs face inherent limitations due to the self-attention mechanism, which scales quadratically with the number of tokens \cite{vaswani2017attention}.
 This quadratic complexity restricts the practical context length, posing a significant challenge for tasks requiring extensive history or large documents.
 
 The long context limitation is particularly severe in complex automated scenarios involving agents with many interaction turns.
@@ -23,8 +23,8 @@ We can categorize them into four main groups: architectural innovations, extende
 \paragraph{Architectural Innovations.}
 One line of research focuses on modifying the self-attention mechanism to reduce its computational complexity.
 Sparse and local/windowed attention patterns reduce pairwise interactions to achieve sub-quadratic cost.
-For instance, Longformer combines sliding windows with global tokens to handle long documents \cite{beltagy_longformer_2020}, while BigBird employs block- and mixed-sparsity patterns for similar gains \cite{zaheer_bigbird_2020}.
-Linear-time approximations, such as kernelized attention or Linformer's projection method \cite{wang_linformer_2020}, offer further asymptotic improvements.
+For instance, Longformer combines sliding windows with global tokens to handle long documents \cite{beltagy2020longformer}, while BigBird employs block- and mixed-sparsity patterns for similar gains \cite{zaheer2020big}.
+Linear-time approximations, such as kernelized attention or Linformer's projection method \cite{wang2020linformer}, offer further asymptotic improvements.
 
 While these methods offer benefits such as reduced memory footprint, lower computational cost, and effective modeling of local dependencies, they come with notable trade-offs.
 Sparse attention patterns can fail to properly route information across distant parts of the sequence when global tokens or connectivity patterns are insufficient.
@@ -38,15 +38,15 @@ This direction suggests that the future of long-context modeling may lie in hybr
 
 \paragraph{Extended Context Windows.}
 A more direct approach is to leverage newer models that are architecturally designed for very long contexts, often extending to one or two million tokens.
-Many of these models utilize advancements like Rotary Position Embeddings (RoPE) \cite{su_roformer_2021} to better handle long-range dependencies.
+Many of these models utilize advancements like Rotary Position Embeddings (RoPE) \cite{su2024roformer} to better handle long-range dependencies.
 While this seems like a straightforward solution, it comes with its own set of drawbacks.
 Processing extremely long contexts, even with linear-scaling attention mechanisms, is computationally expensive and memory-intensive, leading to high inference latency and cost.
-Furthermore, models with large context windows can suffer from the "lost in the middle" problem, where they struggle to effectively utilize information from the middle of a long input sequence \cite{liu2023lost}.
+Furthermore, models with large context windows can suffer from the "lost in the middle" problem, where they struggle to effectively utilize information from the middle of a long input sequence \cite{liu2024lost}.
 
 \paragraph{Explicit Compression.}
 Another approach is to explicitly compress the context before it is fed to the LLM.
-This can be done through methods like retrieval-augmented generation (RAG), which selects relevant passages from a larger corpus \cite{lewis_rag_2020}.
-A prominent example is the Retrieval-Enhanced Transformer (RETRO), which conditions on retrieved documents to significantly improve language modeling performance \cite{borgeaud2022retro}.
+This can be done through methods like retrieval-augmented generation (RAG), which selects relevant passages from a larger corpus \cite{lewis2020retrieval}.
+A prominent example is the Retrieval-Enhanced Transformer (RETRO), which conditions on retrieved documents to significantly improve language modeling performance \cite{borgeaud2022improving}.
 The main advantage is a controllable computational cost and the ability to incorporate external knowledge.
 However, these methods can suffer from selection bias, retrieval errors, and the potential loss of crucial details during the summarization or retrieval process, which can be harmful for downstream tasks that require high fidelity (e.g., code-related tasks).
 
