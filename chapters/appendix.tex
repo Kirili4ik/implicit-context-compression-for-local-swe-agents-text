@@ -215,13 +215,13 @@ Table~\ref{tab:thinking_variants} compares the performance of key model configur
 
 The results present an unexpected finding.
 The "Cumulative" prompting strategy, despite polluting the context with repetitive, non-semantic tokens, yielded slightly higher token-wise accuracy compared to the "Clean" approach for both the \texttt{baseline} Qwen model (0.9000 vs. 0.8967) and the \texttt{ICAE-PT+FT} compressed model (0.9089 vs. 0.9020).
-Note, that we, of cource, do not calculate the accuracy on the thinking tokens.
+Note that we, of course, do not calculate the accuracy on the thinking tokens.
 We hypothesize that the repeated, structured nature of the accumulated prefixes might enable the model's attention mechanism to process the context more efficiently, or that the model learns to largely ignore these predictable tokens, leading to a marginal improvement in next-token prediction.
 
 However, it is important to note that these differences are small and might be attributable to randomness in the evaluation process.
 Due to resource constraints, we did not conduct multiple runs to calculate standard deviations for these measurements, which would be necessary to establish statistical significance.
 
-Anyways, all other experiments reported in this work, including the main results in Table~\ref{tab:qwen_icae_variants_absolute}, were conducted using the official "Clean" prompting methodology to ensure the validity and reproducibility of our findings.
+Consequently, all other experiments reported in this work, including the main results in Table~\ref{tab:qwen_icae_variants_absolute}, were conducted using the official "Clean" prompting methodology to ensure the validity and reproducibility of our findings.
 This ablation study may be of interest to future work involving the Qwen3 model family.
 
 \section{Training Details and Hyperparameters}

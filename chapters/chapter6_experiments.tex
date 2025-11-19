@@ -335,7 +335,7 @@ The pretraining and fine-tuning processes are described in more detail in Chapte
 
 
 \subsection{Results}
-The results of our experiments are presented in Table~\ref{tab:qwen_icae_variants_absolute}. The table compares several model configurations across five oder is only applied if akey metrics:
+The results of our experiments are presented in Table~\ref{tab:qwen_icae_variants_absolute}. The table compares several model configurations across five key metrics:
 \begin{itemize}
     \item \textbf{Encoder}: The model used to compress observations. "—" indicates no encoder and thus no compression.
     \item \textbf{Decoder}: The model used to generate the next tool call. We test the base Qwen3-8B ("\texttt{Baseline}"), a LoRA fine-tuned version ("Baseline-LoRA+FT"), and a fully fine-tuned version ("Baseline-Full+FT")
@@ -433,6 +433,14 @@ Furthermore, an interesting observation was made regarding the \texttt{Baseline+
 Within the online agentic setting of SWE-bench, this configuration substantially underperformed the non-finetuned \texttt{Baseline} model.
 This outcome contrasts with its performance on offline benchmarks such as RepoQA, where LoRA fine-tuning resulted in a significant performance gain (Figure~\ref{fig:bleu_repoqa}).
 This indicates that the efficacy of LoRA fine-tuning is task-dependent and its benefits do not necessarily generalize from static benchmarks to dynamic, interactive settings.
+
+\paragraph{The LoRA Bottleneck in Agentic Fine-tuning.}
+A critical finding from Table~\ref{tab:qwen_icae_variants_absolute} is that the \texttt{Baseline+LoRA-FT} model (10 solved) significantly underperforms the off-the-shelf \texttt{Baseline} (19.4 solved).
+This suggests that the performance degradation observed in our ICAE models may not be solely due to compression.
+Instead, it may be attributable to the limitations of LoRA fine-tuning for agentic tasks.
+If the standard parameter-efficient fine-tuning method itself harms the agent's ability to reason and plan compared to the base model, then using it to train the compression encoder introduces an additional bottleneck.
+This points to a need for full-parameter fine-tuning to truly unlock agentic capabilities.
+However, such experiments were beyond our computational constraints.
 
 \paragraph{Efficiency Gains.}
 Beyond trajectory length, we also examined the computational efficiency of the ICAE compression approach.

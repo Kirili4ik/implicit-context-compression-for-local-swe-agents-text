@@ -28,8 +28,12 @@ While KV-caching is essential for production deployment to achieve practical inf
 \subsection{Model Scale}
 Due to computational and time constraints, our experiments were confined to the Qwen3-8B model. While evaluating on the full 500-issue SWE-bench Verified dataset provides sufficient statistical power for robust comparisons at this scale, an important direction for future research is to investigate ICAE's effectiveness on larger models like Qwen3-32B. It remains an open question whether larger models, with their increased capacity, can better leverage compressed representations or if they are more sensitive to information loss during compression.
 
-\subsection{Full Fine-Tuning}
-Our experiments with ICAE exclusively utilized LoRA for parameter-efficient fine-tuning, consistent with the original work. However, our \texttt{baseline} experiments revealed that a fully fine-tuned Qwen3-8B model significantly outperforms its LoRA-tuned counterpart, establishing a high-performance upper bound. Although the original ICAE authors did not explore full fine-tuning, this result suggests that applying full fine-tuning to the ICAE encoder could yield substantial benefits in a complex agentic setting. Our open-sourced codebase is designed to facilitate such experiments, and we encourage future work to explore this promising direction, time and resources permitting.
+\subsection{Full Fine-Tuning and the LoRA Bottleneck}
+Our experiments with ICAE exclusively utilized LoRA for parameter-efficient fine-tuning, consistent with the original work.
+However, our \texttt{baseline} experiments revealed a critical limitation: the LoRA-tuned baseline significantly underperformed the frozen base model in the agentic setting, whereas the fully fine-tuned model established the high-performance upper bound.
+This "LoRA bottleneck" suggests that low-rank adaptation may be insufficient for learning the complex, multi-step reasoning required for autonomous software engineering, regardless of context compression.
+Consequently, applying full fine-tuning to the ICAE encoder is not merely an optimization but likely a necessity for this domain.
+Our open-sourced codebase facilitates this, and we identify it as the most important next step for future research.
 
 \subsection{Reasoning Enabled}
 For methodological simplicity, we disabled the Qwen3 model's "thinking" mechanism, which is designed to improve performance on complex reasoning tasks. Enabling this feature could prove highly beneficial, as it might allow the model to iteratively reason over the compressed knowledge stored in memory slots, potentially leading to better decision-making. Given that chain-of-thought reasoning has been shown to dramatically improve performance on various benchmarks, exploring the interaction between compressed context and explicit reasoning steps is a critical avenue for future research.

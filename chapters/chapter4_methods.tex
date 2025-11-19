@@ -117,6 +117,9 @@ The figure illustrates two parallel training paths. The first path is for our IC
 
 The second path is for a comparative baseline. The original \texttt{Baseline} Qwen3 model is directly fine-tuned with LoRA on the agentic trajectories dataset. This produces the \texttt{Baseline+FT} model. This allows us to compare our two-stage ICAE approach against a standard parameter-efficient fine-tuning of a base language model on the target task.
 
+\subsection{Disabling "Thinking" for Tool Use}
+Finally, a specific configuration choice for our agentic experiments involves the model's reasoning mode. The Qwen3 family includes a "thinking" feature designed for complex chain-of-thought reasoning. However, for our tool-use objectives, we explicitly disable this feature to prioritize direct action generation and to simplify the context management pipeline. This decision is analyzed further in the ablation study in Appendix~\ref{sec:disabling_thinking}.
+
 \begin{figure}[hbt]
   \centering
   \includegraphics[width=0.8\textwidth]{graphs/overall-names.jpg}

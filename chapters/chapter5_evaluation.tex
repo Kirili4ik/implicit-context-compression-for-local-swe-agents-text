@@ -76,7 +76,7 @@ While each dataset has a primary metric suited to its objective, we also report 
 For our main agentic task on SWE-bench Verified, the primary metric is the number of successfully resolved issues (out of 500).
 This provides a direct, end-to-end measure of the agent's practical software engineering capabilities.
 We also report the mean tool-call generation time to quantify the efficiency gains from our compression method.
-We do not use trajectory length as a metric, as it can be misleading; agents can enter repetitive loops that inflate length without making progress.
+We do not use trajectory length as a primary proxy for success, as agents can enter repetitive loops that inflate length without making progress; however, we do analyze it in Chapter~\ref{cha:experiments} to measure the effective capacity of the context window.
 
 \subsection{Token-Level Metrics}
 For reconstruction and question-answering tasks, we rely on several standard token-level metrics.

@@ -43,9 +43,7 @@ This is achieved by constructing \(R_m\) as a block-diagonal matrix of 2D rotati
 These mechanisms create a local inductive bias: tokens that are closer in position tend to have higher prior attention affinity.
 This has direct implications for compression with special tokens ("memory", or compressed tokens): where those tokens are placed in position-ID space controls which parts of the sequence they can most easily interact with.
 Empirically, assigning position IDs to minimize distance between compressed tokens and the tokens they must interface with (either source content or the downstream prompt) improves effectiveness \cite{zhao2024position}.
-
-\textbf{TODO: write about it more!!!
-we would talk about it later in the thesis?}
+To implement this, we adopt a strategy where the position IDs of the memory tokens are manually assigned to be adjacent to the target context, effectively ``teleporting'' the compressed history next to the current generation step. This minimizes the relative distance perceived by the attention mechanism (especially with RoPE), ensuring that the model can attend to the compressed memory as strongly as it attends to immediate local context.
 
 % ========================================
 % SECTION 2.2: PARAMETER-EFFICIENT LLM FINE-TUNING
@@ -75,6 +73,7 @@ The benefits include:
     \item faster fine-tuning
 \end{itemize}
 Practical considerations include choosing the rank \(r\), the scaling \(\alpha\), as well as target layers to balance adaptation capacity and generalization \cite{hu2022lora}.
+It is worth noting that while LoRA is a standard and effective technique for many NLP tasks, its efficacy specifically for long-horizon agentic planning—where models must maintain robust reasoning over many turns—is less explored and potentially more constrained than full-parameter fine-tuning.
 
 % ========================================
 % SECTION 2.3: AGENTIC SETUP AND TOOL USE
