@@ -35,8 +35,8 @@ This "LoRA bottleneck" suggests that low-rank adaptation may be insufficient for
 Consequently, applying full fine-tuning to the ICAE encoder is not merely an optimization but likely a necessity for this domain.
 Our open-sourced codebase facilitates this, and we identify it as the most important next step for future research.
 
-\subsection{Reasoning Enabled}
-For methodological simplicity, we disabled the Qwen3 model's "thinking" mechanism, which is designed to improve performance on complex reasoning tasks. Enabling this feature could prove highly beneficial, as it might allow the model to iteratively reason over the compressed knowledge stored in memory slots, potentially leading to better decision-making. Given that chain-of-thought reasoning has been shown to dramatically improve performance on various benchmarks, exploring the interaction between compressed context and explicit reasoning steps is a critical avenue for future research.
+\subsection{Disabled Reasoning}
+For methodological simplicity, we disabled the Qwen3 decoder model's reasoning(i.e. "thinking") mechanism, which is designed to improve performance on complex reasoning tasks. Enabling this feature could prove highly beneficial, as it might allow the model to iteratively reason over the compressed knowledge stored in memory slots, potentially leading to better decision-making. Given that chain-of-thought reasoning has been shown to dramatically improve performance on various benchmarks, exploring the interaction between compressed context and explicit reasoning steps is a critical avenue for future research.
 
 
 \section{Open Source Contributions and Reproducibility}

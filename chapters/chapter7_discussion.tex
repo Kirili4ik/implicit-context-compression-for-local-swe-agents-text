@@ -1,0 +1,30 @@
+\chapter{Discussion}
+\label{cha:discussion}
+
+This chapter provides an in-depth analysis of the experimental results and explores potential explanations for the observed performance patterns.
+We examine the factors that may contribute to the degradation in agentic task performance, despite strong results on static benchmarks.
+The discussion is structured around several hypotheses that collectively shed light on the challenges of applying compression methods to multi-turn, interactive software engineering tasks.
+
+\section{Analysis of Performance Degradation}
+
+While our compression approach demonstrates promising results on static benchmarks such as SQuAD and RepoQA, the performance on the primary agentic task (SWE-bench Verified) reveals significant challenges.
+This section explores potential reasons for this degradation.
+
+\paragraph{Potential Reasons for Performance Degradation.}
+We hypothesize several factors may contribute to the degradation in task resolution performance:
+\begin{enumerate}
+    \item \textbf{Loss of Agentic Capabilities}: The pretraining stage on a general text corpus may weaken the planning or tool-calling capabilities of the base model that are essential for agentic tasks.
+    While fine-tuning on agentic data recovers some task-specific abilities, such as code generation (as evidenced by the strong performance on RepoQA in Section~\ref{sec:eval_repoqa}), it may not be sufficient to restore the full spectrum of agentic competence.
+
+    \item \textbf{Imperfect Reconstruction Fidelity}: As discussed in Section~\ref{sec:icae_pretraining_results}, the autoencoding pretraining does not achieve perfect reconstruction (i.e., BLEU scores do not approach $\ge 0.99$).
+    In software engineering tasks, even minor inaccuracies in compressed observations can accumulate over a multi-step trajectory and lead to critical failures (see the illustrative example in Section~\ref{ex:ae-readme-recon}).
+
+    \item \textbf{Unsuitability of LoRA-FT for Agentic Tasks}: The use of parameter-efficient fine-tuning via LoRA may be insufficient for adapting a model to complex agentic workflows.
+    Our results show that the \texttt{Baseline+LoRA-FT} model also performs poorly compared to both the fully fine-tuned and simple baselines, suggesting that LoRA may not be an effective strategy for this specific task, regardless of compression.
+    Notably, we have found no research done using LoRA for agentic trajectories, only full-parameter fine-tuning (which performs the best in our experiments).
+
+    \item \textbf{The Challenge of Multi-Turn Interaction}: In single-shot NLP tasks like SQuAD or RepoQA, the context is static and complete.
+    In contrast, an agentic task is dynamic: the action at step \(k\) influences the observation at step \(k+1\).
+    It is impossible to determine at the moment of compression which pieces of information from an observation will become critical at a future step \(k+i\).
+    The compression process, optimized for immediate reconstruction, may discard seemingly unimportant details that are essential for long-term planning and task success.
+\end{enumerate}

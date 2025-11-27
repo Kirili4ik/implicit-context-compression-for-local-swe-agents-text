@@ -2,6 +2,14 @@
 % CHAPTER 2: BACKGROUND (FUNDAMENTALS)
 % ========================================
 \chapter{Background}
+\label{cha:background}
+
+This chapter builds the foundation for the thesis's core methodology.
+It begins with Transformer architecture, as our compression method directly manipulates positional signals to manage context.
+Next, it explains Parameter-Efficient Fine-Tuning (LoRA), which is the technique used to train our In-Context Autoencoder.
+The agentic framework is then detailed, establishing the complex, multi-step problem domain we aim to solve.
+Finally, we discuss Large Language Models for code, the specific application area for our experiments.
+These sections collectively explain the prerequisite concepts needed to understand our novel approach to context compression.
 
 % ========================================
 % SECTION 2.1: TRANSFORMER ARCHITECTURE AND POSITIONAL BIAS
@@ -101,7 +109,7 @@ BFCL provides a standardized suite of tasks to measure an LLM's proficiency in t
 The tasks range from simple, single-function invocations to complex scenarios requiring multi-step reasoning and tool chaining.
 This benchmark exemplifies the practical challenges in agentic systems, where models must correctly interpret user intent and interact with external APIs or codebases \cite{patilberkeley}.
 
-\textbf{Agentic toolcall examples (from \cite{patilberkeley}):}
+\textbf{Agentic toolcall examples (from BFCL\cite{patilberkeley}):}
 \begin{itemize}
   \item Vehicle status lookup: \texttt{vehicle.getStatus(vin="WVWZZZ...")} — returns battery level, tire pressure, and last seen location.
   \item Driving route plan: \texttt{maps.route(origin="Munich", dest="Berlin", mode="driving")} — computes ETA and step-by-step directions.
@@ -121,23 +129,23 @@ This benchmark exemplifies the practical challenges in agentic systems, where mo
 % ========================================
 \section{Large Language Models for Code}
 
-Large Language Models have demonstrated significant capabilities in understanding, generating, and manipulating source code.
+Large Language Models have demonstrated significant capabilities in understanding, generating, and manipulating source code \cite{chen2021evaluating, austin2021program}.
 This proficiency stems from their training on vast corpora of publicly available code, which allows them to learn the syntax, semantics, and common patterns of various programming languages.
 For an LLM, code is treated as another form of structured text, and the same sequence modeling principles that apply to natural language can be adapted for software.
 
 The core capabilities of LLMs in the context of software engineering include:
 \begin{itemize}
-  \item \textbf{Code Completion:} Suggesting completions for partially written lines of code, similar to IDE autocompletion but often with more context-awareness.
-  \item \textbf{Code Simplification:} Refactoring code to be more readable/efficient or shorter without changing its functionality.
-  \item \textbf{Code Translation:} Migrating code from one programming language to another (e.g., Python to JavaScript).
-  \item \textbf{Bug Detection and Repair:} Identifying potential bugs in a piece of code and suggesting fixes.
-  \item \textbf{Code Editing:} Modifying existing code based on high-level instruction.
-  \item \textbf{Code Documentation and Summarization:} Generating natural language descriptions from code, such as docstrings or summaries, and answering questions about its functionality.
-  \item \textbf{Agentic Code Tasks:} Autonomously planning and executing complex, multi-step software engineering tasks.
+  \item \textbf{Code Completion:} Suggesting completions for partially written lines of code, similar to IDE autocompletion but often with more context-awareness \cite{chen2021evaluating}.
+  \item \textbf{Code Simplification:} Refactoring code to be more readable/efficient or shorter without changing its functionality \cite{wang2024natural}.
+  \item \textbf{Code Translation:} Migrating code from one programming language to another (e.g., Python to JavaScript) \cite{wang2021codet5}.
+  \item \textbf{Bug Detection and Repair:} Identifying potential bugs in a piece of code and suggesting fixes \cite{jimenez2023swe}.
+  \item \textbf{Code Editing:} Modifying existing code based on high-level instruction \cite{yang2024swe}.
+  \item \textbf{Code Documentation and Summarization:} Generating natural language descriptions from code, such as docstrings or summaries, and answering questions about its functionality \cite{feng2020codebert}.
+  \item \textbf{Agentic Code Tasks:} Autonomously planning and executing complex, multi-step software engineering tasks \cite{zeng2024agenttuning}.
 \end{itemize}
 
 These capabilities are often evaluated on benchmarks such as HumanEval \cite{chen2021evaluating} and MBPP (Mostly Basic Python Programming) \cite{austin2021program}, which test a model's ability to generate functionally correct code from specifications.
 
-The application of LLMs to coding tasks has led to the development of powerful developer tools, such as GitHub Copilot, which are powered by models like OpenAI's Codex.
+The application of LLMs to coding tasks has led to the development of powerful developer tools, such as GitHub Copilot \cite{githubcopilot}, which are powered by models like OpenAI's Codex \cite{chen2021evaluating}.
 These tools act as AI pair programmers, assisting developers and increasing their productivity.
 In the context of agentic systems, the ability to generate and understand code is fundamental for building autonomous agents that can interact with software environments, execute commands, and solve complex software engineering tasks.
