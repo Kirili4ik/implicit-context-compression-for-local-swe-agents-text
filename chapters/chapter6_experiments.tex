@@ -4,6 +4,12 @@
 \chapter{Experiments}
 \label{cha:experiments}
 
+This chapter documents the experimental results.
+First, training-free and projection-based compression methods are evaluated.
+Next, the pretraining of the In-Context Autoencoder (ICAE) is described alongside results on general text reconstruction.
+Subsequently, fine-tuning performance is assessed on the SQuAD question answering dataset and the RepoQA code reconstruction benchmark.
+The chapter concludes with an evaluation on the SWE-bench Verified dataset within an agentic software engineering context.
+
 %
 \section{Feasibility of Training-Free Context Condensation}
 
@@ -321,16 +327,14 @@ To reduce complexity, we explicitly disable the model's "thinking" mode, as deta
 The pretraining and fine-tuning processes are described in more detail in Chapter~\ref{cha:methodology}.
 
 
-\subsection{Evaluatoion and Results}
-The results of our experiments are presented in Table~\ref{tab:qwen_icae_variants_absolute}. The table compares several model configurations across two configurations and two metrics:
+\subsection{Evaluation and Results}
+The results of our experiments are presented in Table~\ref{tab:qwen_icae_variants_absolute}. The configurations for the model variants, including details on the encoder and decoder setups, are described in Chapter~\ref{cha:methodology}. The table compares the models on two primary metrics:
 \begin{itemize}
-    \item \textbf{Encoder}: The model used to compress observations. "—" indicates no encoder and thus no compression.
-    \item \textbf{Decoder}: The model used to generate the next tool call. We test the base Qwen3-8B ("\texttt{Baseline}"), a LoRA fine-tuned version ("Baseline-LoRA+FT"), and a fully fine-tuned version ("Baseline-Full+FT")
     \item \textbf{Resolved (/500)}: The number of issues successfully resolved out of 500.
     \item \textbf{Time (s)}: The mean time in seconds to generate a tool call.
 \end{itemize}
 
-For more details on the model variants, see Figure~\ref{fig:training-process-overview}.
+For more details on how we trained the model variants, see Figure~\ref{fig:training-process-overview}.
 
 We first establish two naive baselines to demonstrate the importance of retaining observation context.
 The "del long obs-s" approach discards any observation exceeding 256 tokens, while "del all obs-s" removes all observations entirely.
@@ -352,25 +356,26 @@ The uncertainty ($\pm$ 6.5) represents the standard deviation across multiple ev
   \setlength{\tabcolsep}{4pt}
   \renewcommand{\arraystretch}{1.05}
 
-  \begin{tabular}{|ll|cc|}
+  \begin{tabular}{|l|ll|cc|}
       \hline
-      \textbf{Encoder} & \textbf{Decoder} & \textbf{Resolved (/500) $\uparrow$} & \textbf{Time (s) $\downarrow$} \\
+      \textbf{Name in our paper} & \textbf{Encoder} & \textbf{Decoder} & \textbf{Resolved (/500) $\uparrow$} & \textbf{Time (s) $\downarrow$} \\
       \hline
-      \multicolumn{4}{|l|}{\hspace{1em}\textit{Naive Baselines}} \\
+      \multicolumn{5}{|l|}{\hspace{1em}\textit{Naive Baselines}} \\
       \hline
-      del long obs-s            &     Baseline       & 1         & 0.44                      \\
-      del all obs-s             &     Baseline       & 0         & 0.39                      \\
+      —                         & del long obs-s            &     Qwen       & 1         & 0.44                      \\
+      —                         & del all obs-s             &     Qwen       & 0         & 0.39                      \\
       \hline
-      \multicolumn{4}{|l|}{\hspace{1em}\textit{Baselines}} \\
+      \multicolumn{5}{|l|}{\hspace{1em}\textit{Baselines}} \\
       \hline
-      —                         & Baseline+Full-FT   & \textbf{86}                       & 1.24                      \\
-      —                         & Baseline+LoRA-FT   & 10      & 1.24                      \\
-      —                         & Baseline      & \underline{19.4 $\pm$ 6.5}                        & 1.23                      \\
+      —                         & —                         & Qwen (full-finetuned)   & \textbf{86}                       & 1.24                      \\
+      Baseline+FT               & —                         & Qwen (LoRA-finetuned)   & 10      & 1.24                      \\
+      Baseline                  & —                         & Qwen   & \underline{19.4 $\pm$ 6.5}                        & 1.23                      \\
       \hline
-      \multicolumn{4}{|l|}{\hspace{1em}\textit{ICAE Compression (ours)}} \\
+      \multicolumn{5}{|l|}{\hspace{1em}\textit{ICAE Compression (ours)}} \\
       \hline
-      Baseline-PT+FT (ICAE)      & Baseline           & 7.8 $\pm$ 2.59                    & \textbf{1.12 (0.31+0.81)}    \\
-      Baseline-PT+FT (ICAE)      & Baseline+LoRA-FT   & 10          & \underline{1.13}              \\
+      ICAE-PT                   & ICAE (pretrained)         & Qwen           & 19.4 $\pm$ 6.5                    & 1.23                      \\
+      ICAE-PT+FT                & ICAE (pretrained \& LoRA-finetuned)       & Qwen           & 7.8 $\pm$ 2.59                    & \textbf{1.12 (0.31+0.81)}    \\
+      —                         & ICAE (pretrained \& LoRA-finetuned)      & Qwen (LoRA-finetuned)   & 10          & \underline{1.13}              \\
       \hline
   \end{tabular}
   \caption{Performance comparison of different model configurations on SWE-bench Verified. \texttt{Baseline} is a Qwen3-8B model wihtout any fine-tuning.}

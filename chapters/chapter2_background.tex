@@ -57,6 +57,7 @@ To implement this, we adopt a strategy where the position IDs of the memory toke
 % SECTION 2.2: PARAMETER-EFFICIENT LLM FINE-TUNING
 % ========================================
 \section{Parameter-Efficient LLM Fine-Tuning}
+\label{sec:peft}
 
 There are many techniques to efficiently fine-tune LLMs, but we focus on Low-Rank Adaptation (LoRA) \cite{hu2022lora}.
 LoRA freezes the pre-trained weight matrices and introduces trainable low-rank updates, yielding substantial parameter savings while preserving the base model’s knowledge \cite{hu2022lora}.

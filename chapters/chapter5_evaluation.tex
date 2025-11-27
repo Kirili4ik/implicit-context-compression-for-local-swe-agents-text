@@ -87,6 +87,7 @@ The \texttt{str\_replace\_editor} is a critical tool that supports viewing, crea
 \section{Quality Metrics}
 \label{sec:quality_metrics}
 We employ a variety of metrics to evaluate our approach, tailored to the specific demands of each task.
+The evaluation framework distinguishes between task-level metrics for end-to-end performance, token-level metrics for generation quality, and efficiency metrics to evaluate the performance of the system in the context of \hyperref[rq:1]{RQ1}.
 While each dataset has a primary metric suited to its objective, we also report the BLEU score~\cite{papineni2002bleu} score across all evaluations to provide a consistent basis for comparison (see Figure~\ref{fig:bleu_all_datasets}).
 
 \subsection{Token-Level Metrics}
@@ -102,6 +103,12 @@ This choice is motivated by the nature of our tasks, particularly with code, whe
 
 \subsection{Task-Level Metrics}
 For our main agentic task on SWE-bench Verified, the primary metric is the number of successfully resolved issues (out of 500).
-This provides a direct, end-to-end measure of the agent's practical software engineering capabilities.
-We also report the mean tool-call generation time to quantify the efficiency gains from our compression method.
-It is important to note that we do not use trajectory length as a primary proxy for success, as agents can enter repetitive loops that inflate length without making progress; however, we do analyze it in Chapter~\ref{cha:experiments} to measure the effective capacity of the context window.
+This provides a direct, end-to-end measure of the agent's practical software engineering capabilities, serving as the key indicator for the transferability analysis in \hyperref[rq:2]{RQ2}.
+\subsection{Efficiency Metrics}
+To evaluate the efficiency of the system in the context of \hyperref[rq:1]{RQ1}, two metrics are considered: generation time and the number of steps in the trajectory.
+Generation time measures the duration required for the model to produce an output (i.e. a tool call / action) and is reported in seconds.
+The number of steps in the trajectory represents the total amount of tool calls (i.e. actions) in a trajectory.
+In standard configurations, a hard limit of 75 steps is typically imposed.
+However, for these specific measurements, this restriction is removed to observe the full trajectory length achievable by the models.
+The only remaining constraint is the context window limit of 32,768 tokens.
+These metrics are used to approximate the efficiency of the agent.

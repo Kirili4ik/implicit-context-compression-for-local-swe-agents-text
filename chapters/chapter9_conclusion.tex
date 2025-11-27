@@ -25,12 +25,13 @@ The work also assessed training-free and lightweight learned compression attempt
 
 \section{Synthesis of Findings}
 
-\textbf{RQ1 --- Longer trajectories.}
-Implicit context condensation increased the number of agent steps before context overflow (113 vs.\ 81 on average) and reduced per-call latency by $\sim$10\%.
+\textbf{RQ1 --- Efficiency: Longer trajectories and speed.}
+Implicit context condensation increased the number of agent steps before context overflow (113 vs.\ 81 on average, a 40\% increase) and reduced per-call latency by approximately 10\% (1.12 seconds vs.\ 1.23 seconds for the baseline).
+The compressed agent's total time comprises 0.31 seconds for observation compression and 0.81 seconds for tool-call generation.
 Thus, the method does allow completion of longer trajectories under a fixed context window, and it improves efficiency.
 However, these benefits did not raise the solve rate on SWE-bench Verified in this setting (\Cref{tab:qwen_icae_variants_absolute}; \Cref{fig:boxplot-stepcount}).
 
-\textbf{RQ2 --- Transfer from standard NLP to agentic SWE.}
+\textbf{RQ2 --- Transferability: NLP to Agentic SWE.}
 Performance gains observed on SQuAD and preserved fidelity on RepoQA did not transfer to end-to-end SWE-bench Verified.
 The model learned to predict next actions well on static trajectories (higher BLEU) yet under-resolved tasks when its own actions shaped subsequent observations (\Cref{fig:squad_results,fig:repoqa_metrics} vs.\ \Cref{fig:bleu-boxplot-combined}).
 This gap highlights the difference between offline imitation and online, multi-turn control in software-engineering environments (\Cref{sec:rq2_performance_domains}).

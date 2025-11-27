@@ -31,19 +31,45 @@ As an example, we would use the following trajectory (you can also see Figure~\r
 \begin{figure}[hbt]
   \centering
   \includegraphics[width=\textwidth]{graphs/overall-names.jpg}
-  \caption{Full training process overview, illustrating the derivation of model variants. The diagram shows two parallel training paths starting from the pretrained \texttt{Qwen3-8B} baseline. The first path (top) shows the ICAE approach: the baseline initializes both encoder and decoder, then pretraining (PT) on SlimPama-6B produces \texttt{ICAE-PT}, followed by fine-tuning (FT) on agentic trajectories to yield \texttt{ICAE-PT+FT}. Only encoder LoRA weights are trained while the decoder remains frozen. The second path (bottom) shows direct LoRA fine-tuning of the baseline on agentic trajectories, producing \texttt{Baseline+FT}. Thus, we receieve all 4 main model variants for comparison.}
+  \caption{Full training process overview, illustrating the derivation of model variants. The diagram shows two parallel training paths starting from the pretrained \texttt{Qwen3-8B} baseline. The first path (top) shows the ICAE approach: the baseline initializes both encoder and decoder, then pretraining (PT) on SlimPama-6B produces \texttt{ICAE-PT}, followed by fine-tuning (FT) on agentic trajectories to yield \texttt{ICAE-PT+FT}. Only encoder LoRA weights are trained while the decoder remains frozen. The second path (bottom) shows direct LoRA fine-tuning of the baseline on agentic trajectories, producing \texttt{Baseline-FT}. Thus, we receieve all 4 main model variants for comparison.}
   \label{fig:training-process-overview}
 \end{figure}
 
 Figure~\ref{fig:training-process-overview} provides a comprehensive overview of the full training and evaluation pipeline, illustrating how each of our model variants is derived.
 
-The starting point for all variants is a standard, pretrained \texttt{Qwen3-8B} model~\cite{yang2025qwen3}, which we refer to as the \texttt{Baseline}. This is a ready-to-use model, not one with random weights.
-So, basically, the model in the \texttt{Baseline} is already a pretrained model, but we stick with the naming of the process in \textcite{ge2023context} for consistency and name the 2 stages as Pretraining (PT) and Fine-Tuning (FT).
+The starting point for all variants is a standard, pretrained \texttt{Qwen3-8B} model~\cite{yang2025qwen3}, which we refer to as \texttt{Baseline}. This is a ready-to-use model, not one with random weights.
+So, basically, the model in \texttt{Baseline} is already a pretrained model, but we stick with the naming of the process in \textcite{ge2023context} for consistency and name the 2 stages as Pretraining (PT) and Fine-Tuning (FT).
 
-There are two parallel training paths. The first path is for our ICAE model. The \texttt{Baseline} model is used to initialize the ICAE encoder and decoder. In the Pretraining (PT) stage, we train the LoRA weights of the encoder on the SlimPama-6B dataset~\cite{weber2024redpajama}, resulting in the \texttt{ICAE-PT} model. This model is then fine-tuned on the agentic trajectories dataset, yielding the final \texttt{ICAE-PT+FT} model. Crucially, for both ICAE training stages, only the encoder's LoRA weights are updated, while the base Qwen3 model used as the decoder remains frozen.
+There are two parallel training paths. The first path is for our ICAE model. \texttt{Baseline} model is used to initialize the ICAE encoder and decoder. In the Pretraining (PT) stage, we train the LoRA weights of the encoder on the SlimPama-6B dataset~\cite{weber2024redpajama}, resulting in \texttt{ICAE-PT} model. This model is then fine-tuned on the agentic trajectories dataset, yielding the final \texttt{ICAE-PT+FT} model. Crucially, for both ICAE training stages, only the encoder's LoRA weights are updated, while the base Qwen3 model used as the decoder remains frozen.
 
-The second path is for a comparative baseline. The original \texttt{Baseline} Qwen3 model is directly fine-tuned with LoRA on the agentic trajectories dataset. This produces the \texttt{Baseline+FT} model. This allows us to compare our two-stage ICAE approach against a standard parameter-efficient fine-tuning of a base language model on the target task.
+The second path is for a comparative baseline. The original \texttt{Baseline} Qwen3 model is directly fine-tuned with LoRA on the agentic trajectories dataset. This produces \texttt{Baseline-FT} model. This allows us to compare our two-stage ICAE approach against a standard parameter-efficient fine-tuning of a base language model on the target task.
 
+In addition to the process overview in Figure~\ref{fig:training-process-overview}, Table~\ref{tab:model_variants_overview} provides a clear mapping of our four main model variant names to their respective encoder and decoder configurations. The encoder is responsible for compressing, while the decoder generates the text.
+A dash (—) in the 'Encoder' column signifies that no compression module is used, and the decoder processes the uncompressed context directly. For a complete list of all experimental configurations and their results, please refer to Table~\ref{tab:qwen_icae_variants_absolute} in Chapter~\ref{cha:experiments}.
+
+\begin{table}[h]
+  \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \renewcommand{\arraystretch}{1.05}
+  \begin{tabular}{|l|ll|}
+      \hline
+      \textbf{Name in our paper} & \textbf{Encoder} & \textbf{Decoder} \\
+      \hline
+      \multicolumn{3}{|l|}{\hspace{1em}\textit{Baselines}} \\
+      \hline
+      \texttt{Baseline}                  & —                         & Qwen   \\
+      \texttt{Baseline-FT}               & —                         & Qwen (LoRA-finetuned)   \\
+      \hline
+      \multicolumn{3}{|l|}{\hspace{1em}\textit{ICAE Compression}} \\
+      \hline
+      \texttt{ICAE-PT}                   & ICAE (pretrained)         & Qwen           \\
+      \texttt{ICAE-PT+FT}                & ICAE (pretrained \& LoRA-finetuned)       & Qwen           \\
+      \hline
+  \end{tabular}
+  \caption{This table maps the names of our four main model variants to their specific encoder and decoder configurations, as depicted in Figure~\ref{fig:training-process-overview}. A more comprehensive comparison including other variants is presented in Chapter~\ref{cha:experiments} (see Table~\ref{tab:qwen_icae_variants_absolute}).}
+  \label{tab:model_variants_overview}
+\end{table}
 % ========================================
 % SECTION 4.1: ICAE FOR AGENTIC CONTEXT MANAGEMENT
 % ========================================

@@ -22,7 +22,7 @@ When applied to instruction-following tasks, ICAE memory tokens are competitive 
 Moreover, this compression leads to significant latency improvements, with measured end-to-end speedups reaching 2.2–3.6$\times$ in cacheable regimes where memory slots are pre-computed.
 
 ICAE is the most direct prior for our implicit compression: we also encode contexts into continuous embeddings and condition the model on the learned memory tokens, but extend the setting to newer backbones and coding/agentic workloads (SWE-style trajectories).
-We also emphasize agent-trajectory finetuning over SWE-bench-like tasks, which \textcite{ge2023context} did not target; for later chapters, this section supplies the technical background (slots, compression ratios, fidelity–throughput trade-offs) we build on.
+We also emphasize agent-trajectory fine-tuning over SWE-bench-like tasks, which \textcite{ge2023context} did not target; for later chapters, this section supplies the technical background (slots, compression ratios, fidelity–throughput trade-offs) we build on.
 
 \paragraph{LLMLingua-2}
 \textcite{pan2024llmlingua} introduce LLMLingua-2, a task-agnostic method for explicit prompt compression.
@@ -91,7 +91,7 @@ Performance further improves when trained on sequences up to 100K tokens, with p
 The model demonstrates remarkable long-context capabilities, achieving near-perfect passkey retrieval at sequence lengths of 1 million tokens and setting a new state-of-the-art on a 500K-token book summarization task.
 These gains, however, require modifying the model's architecture and either pretraining from scratch or undergoing extensive continued pre-training.
 Our approach, in contrast, remains compatible with existing LLMs by using ICAE-style memory tokens.
-We focus on finetuning these representations for agentic coding tasks, whereas \textcite{munkhdalai2024leave} offer a complementary solution for scenarios where processing raw, ultra-long contexts is indispensable.
+We focus on fine-tuning these representations for agentic coding tasks, whereas \textcite{munkhdalai2024leave} offer a complementary solution for scenarios where processing raw, ultra-long contexts is indispensable.
 
 \paragraph{AgentTuning}
 To improve the agentic capabilities of open-source models via supervision, \textcite{zeng2024agenttuning} propose a method centered on fine-tuning LLMs with a specialized dataset of agent interaction trajectories.
@@ -105,7 +105,7 @@ The work suggests that this fine-tuning process helps to "activate" latent agent
 
 We similarly fine-tune on stepwise trajectories, but our work differs in its focus and domain.
 \textcite{zeng2024agenttuning} aim to improve agent behavior but do not address the challenge of long-context compression for complex code-related tasks.
-Our method integrates this concept of trajectory-based finetuning with an ICAE-style memory system, specifically targeting the bottlenecks of long code contexts and multi-turn interactions found in software engineering scenarios.
+Our method integrates this concept of trajectory-based fine-tuning with an ICAE-style memory system, specifically targeting the bottlenecks of long code contexts and multi-turn interactions found in software engineering scenarios.
 
 \section{Synthesis and Positioning}
 
@@ -121,4 +121,4 @@ Our decision to pursue an ICAE-based approach over alternatives is deliberate.
 We avoid explicit token deletion \parencite{pan2024llmlingua, wang2024natural} because agentic code generation is highly sensitive to subtle syntactic and semantic details that pruning may inadvertently remove.
 While effective for code understanding, such methods are less suitable for iterative code repair.
 We also avoid architectural modifications \parencite{munkhdalai2024leave} to ensure our solution remains compatible with a wide range of existing, publicly available LLMs, thereby maximizing applicability and leveraging the benefits of KV-caching for the compressed memory tokens.
-Our method therefore pairs the context-handling efficiency of ICAE with the demonstrated effectiveness of trajectory finetuning to create an agent optimized for long-context software engineering challenges.
+Our method therefore pairs the context-handling efficiency of ICAE with the demonstrated effectiveness of trajectory fine-tuning to create an agent optimized for long-context software engineering challenges.
