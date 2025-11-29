@@ -2,8 +2,8 @@
 \label{cha:evaluation}
 
 This chapter details the evaluation framework used to assess the performance of the proposed method.
-The first section describes the datasets employed in the experiments. These include SlimPajama-6B for pretraining, SWE-bench and a custom dataset of agentic trajectories on it for the primary agentic task; SQuAD and RepoQA benchmarks for evaluating general compression and code reconstruction capabilities.
-The subsequent section outlines the quality metrics used for evaluation, distinguishing between task-level metrics for end-to-end performance and token-level metrics for assessing generation quality.
+The first section describes the datasets employed in the experiments. These include RedPajama for pretraining, SQuAD and RepoQA benchmarks for evaluating general compression and code reconstruction capabilities, and SWE-bench alongside a dataset of agentic trajectories for the primary agentic task.
+The subsequent section outlines the quality metrics used for evaluation, distinguishing between token-level metrics for assessing generation quality, task-level metrics for end-to-end performance, and efficiency metrics.
 
 \section{Datasets}
 \label{sec:datasets}
@@ -103,7 +103,10 @@ This choice is motivated by the nature of our tasks, particularly with code, whe
 
 \subsection{Task-Level Metrics}
 For our main agentic task on SWE-bench Verified, the primary metric is the number of successfully resolved issues (out of 500).
-This provides a direct, end-to-end measure of the agent's practical software engineering capabilities, serving as the key indicator for the transferability analysis in \hyperref[rq:2]{RQ2}.
+An issue is considered resolved if the agent's generated patch, when applied to the repository, causes all previously failing tests to pass while not breaking any previously passing tests.
+This binary success criterion provides a direct, end-to-end measure of the agent's practical software engineering capabilities.
+The resolve rate (percentage of successfully resolved issues) serves as the key indicator for assessing the transferability of implicit context condensation from standard NLP tasks to agentic software engineering scenarios in \hyperref[rq:2]{RQ2}.
+
 \subsection{Efficiency Metrics}
 To evaluate the efficiency of the system in the context of \hyperref[rq:1]{RQ1}, two metrics are considered: generation time and the number of steps in the trajectory.
 Generation time measures the duration required for the model to produce an output (i.e. a tool call / action) and is reported in seconds.

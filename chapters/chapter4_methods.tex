@@ -30,7 +30,7 @@ As an example, we would use the following trajectory (you can also see Figure~\r
 
 \begin{figure}[hbt]
   \centering
-  \includegraphics[width=\textwidth]{graphs/overall-names.jpg}
+  \includegraphics[width=\textwidth]{graphs/overall-names.pdf}
   \caption{Full training process overview, illustrating the derivation of model variants. The diagram shows two parallel training paths starting from the pretrained \texttt{Qwen3-8B} baseline. The first path (top) shows the ICAE approach: the baseline initializes both encoder and decoder, then pretraining (PT) on SlimPama-6B produces \texttt{ICAE-PT}, followed by fine-tuning (FT) on agentic trajectories to yield \texttt{ICAE-PT+FT}. Only encoder LoRA weights are trained while the decoder remains frozen. The second path (bottom) shows direct LoRA fine-tuning of the baseline on agentic trajectories, producing \texttt{Baseline-FT}. Thus, we receieve all 4 main model variants for comparison.}
   \label{fig:training-process-overview}
 \end{figure}
@@ -63,8 +63,8 @@ A dash (—) in the 'Encoder' column signifies that no compression module is use
       \hline
       \multicolumn{3}{|l|}{\hspace{1em}\textit{ICAE Compression}} \\
       \hline
-      \texttt{ICAE-PT}                   & ICAE (pretrained)         & Qwen           \\
-      \texttt{ICAE-PT+FT}                & ICAE (pretrained \& LoRA-finetuned)       & Qwen           \\
+      \texttt{ICAE-PT}                   & ICAE (LoRA-pretrained)         & Qwen           \\
+      \texttt{ICAE-PT+FT}                & ICAE (LoRA-pretrained \& LoRA-finetuned)       & Qwen           \\
       \hline
   \end{tabular}
   \caption{This table maps the names of our four main model variants to their specific encoder and decoder configurations, as depicted in Figure~\ref{fig:training-process-overview}. A more comprehensive comparison including other variants is presented in Chapter~\ref{cha:experiments} (see Table~\ref{tab:qwen_icae_variants_absolute}).}
@@ -89,7 +89,7 @@ Parameter-efficient methods like LoRA \cite{hu2022lora} are used to adapt the en
 
 \begin{figure}[hbt]
   \centering
-  \includegraphics[width=\textwidth]{graphs/icae.jpeg}
+  \includegraphics[width=\textwidth]{graphs/icae.pdf}
   \caption{In-Context Autoencoder (ICAE) framework architecture.}
   \label{fig:icae}
 \end{figure}
@@ -97,6 +97,19 @@ Parameter-efficient methods like LoRA \cite{hu2022lora} are used to adapt the en
 Our main contribution is the adaptation and application of this framework to an agentic setting.
 In this scenario, an agent interacts with an environment over multiple turns, generating a trajectory of actions and observations.
 Our method uses ICAE to compress long observations, keeping the overall context manageable without losing critical information.
+Further enhancing this process, we incorporate insights on the strategic placement of compressed representations, as detailed by \textcite{zhao2024position}.
+The effectiveness of context compression is highly dependent on the layout of position identifiers (IDs), particularly in models employing relative position embeddings like RoPE, which we discussed in Chapter~\ref{cha:background}.
+These mechanisms create a local inductive bias where tokens with smaller positional distances exhibit stronger attention affinity.
+Consequently, the placement of memory tokens in the position ID space dictates their accessibility to the decoder.
+
+Standard methods often place compressed tokens at the beginning of the context, creating a large positional gap between the compressed history and the current prompt.
+The work by \textcite{zhao2024position} demonstrates that minimizing this distance significantly improves performance.
+To achieve this, we adopt their strategy of assigning position IDs to the memory tokens that are contiguous with those of the prompt.
+This effectively "teleports" the compressed context to be adjacent to the current generation step, minimizing the relative distance \(j-i\) used in the attention calculation.
+As a result, the decoder can attend to the compressed information as if it were part of the immediate local context.
+The adoption of this position ID manipulation strategy yielded significant improvements in our experiments, particularly during the pretraining phase (see Figure~\ref{fig:pretraining-metrics-combined}).
+
+% ========================================
 
 % ========================================
 % SECTION 4.2: TRAINING METHODOLOGY FOR AGENTIC ICAE
@@ -115,7 +128,7 @@ Instead, it operates on compact embedding representations.
 
 \begin{figure}[hbt]
   \centering
-  \includegraphics[width=\textwidth]{graphs/mega-1.jpeg}
+  \includegraphics[width=\textwidth]{graphs/mega-1.pdf}
   \caption{Overview of applying ICAE to agentic trajectories during fine-tuning.}
   \label{fig:icae-agent-training-overview}
 \end{figure}
@@ -128,7 +141,7 @@ This loss is backpropagated through both the decoder and encoder to update only 
 
 \begin{figure}[hbt]
   \centering
-  \includegraphics[width=\textwidth]{graphs/mega-2.jpeg}
+  \includegraphics[width=\textwidth]{graphs/mega-2.pdf}
   \caption{A single fine-tuning step for the agentic ICAE model.}
   \label{fig:icae-agent-training-step}
 \end{figure}

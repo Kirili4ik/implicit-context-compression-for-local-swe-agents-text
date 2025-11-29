@@ -13,6 +13,24 @@ The chapter concludes with an evaluation on the SWE-bench Verified dataset withi
 %
 \section{Feasibility of Training-Free Context Condensation}
 
+\begin{figure}[hbt]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{graphs/ser111.pdf}
+        \caption{Original approach}
+        \label{fig:ser1}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{graphs/ser2.pdf}
+        \caption{Our modification variant (soft embedding, online)}
+        \label{fig:ser2}
+    \end{subfigure}
+    \caption{Visualization of the "without training" approach.}
+    \label{fig:ser_combined}
+\end{figure}
+
+
 We first investigate whether meaningful context compression can be achieved without any model training.
 These initial experiments explore methods for replacing discrete tokens with continuous representations, testing the hypothesis that simple embedding aggregation can preserve essential information for downstream tasks.
 
@@ -53,24 +71,6 @@ The results establish that replacing discrete tokens with untrained condensed mi
     \caption{Comparison of different training-free context condensation methods}
     \label{tab:avg_variants}
 \end{table}
-
-\begin{figure}[hbt]
-    \centering
-    \begin{subfigure}[b]{0.49\textwidth}
-        \includegraphics[width=\textwidth]{graphs/ser1.jpeg}
-        \caption{Original approach}
-        \label{fig:ser1}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
-        \includegraphics[width=\textwidth]{graphs/ser2.jpeg}
-        \caption{Our modification variant (soft embedding, online)}
-        \label{fig:ser2}
-    \end{subfigure}
-    \caption{Visualization of the "without training" approach.}
-    \label{fig:ser_combined}
-\end{figure}
-
 
 \section{Learning Projections for Context Condensation}
 
@@ -260,7 +260,7 @@ This suggests that while pretraining may temporarily diminish some of the model'
 
 \begin{figure}[hbt]
     \centering
-    \includegraphics[width=0.6\textwidth]{graphs/bleu_squad.pdf}
+    \includegraphics[width=0.6\textwidth]{graphs/bleu/bleu_squad.pdf}
     \caption{BLEU scores on SQuAD using Qwen3-8B as the base model}
     \label{fig:bleu_squad}
 \end{figure}
@@ -305,7 +305,7 @@ In summary, the evaluation on RepoQA indicates that the ICAE framework is capabl
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.49\textwidth}
-        \includegraphics[width=\textwidth]{graphs/bleu_repoqa.pdf}
+        \includegraphics[width=\textwidth]{graphs/bleu/bleu_repoqa.pdf}
         \caption{BLEU scores on RepoQA}
         \label{fig:bleu_repoqa}
     \end{subfigure}
@@ -333,8 +333,39 @@ The results of our experiments are presented in Table~\ref{tab:qwen_icae_variant
     \item \textbf{Resolved (/500)}: The number of issues successfully resolved out of 500.
     \item \textbf{Time (s)}: The mean time in seconds to generate a tool call.
 \end{itemize}
-
 For more details on how we trained the model variants, see Figure~\ref{fig:training-process-overview}.
+
+\begin{table}[h]
+    \centering
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.05}
+  
+    \begin{tabular}{|l|ll|cc|}
+        \hline
+        \textbf{Name in our paper} & \textbf{Encoder} & \textbf{Decoder} & \textbf{Resolved (/500) $\uparrow$} & \textbf{Time (s) $\downarrow$} \\
+        \hline
+        \multicolumn{5}{|l|}{\hspace{1em}\textit{Naive Baselines}} \\
+        \hline
+        —                         & del long obs-s            &     Qwen       & 1         & 0.44                      \\
+        —                         & del all obs-s             &     Qwen       & 0         & 0.39                      \\
+        \hline
+        \multicolumn{5}{|l|}{\hspace{1em}\textit{Baselines}} \\
+        \hline
+        —                         & —                         & Qwen (Full-FT)   & \textbf{86}                       & 1.24                      \\
+        Baseline+FT               & —                         & Qwen (LoRA-FT)   & 10      & 1.24                      \\
+        Baseline                  & —                         & Qwen   & \underline{19.4 $\pm$ 6.5}                        & 1.23                      \\
+        \hline
+        \multicolumn{5}{|l|}{\hspace{1em}\textit{ICAE Compression (ours)}} \\
+        \hline
+        ICAE-PT                   & ICAE (LoRA-PT)         & Qwen           & 2                    & 1.23                      \\
+        ICAE-PT+FT                & ICAE (LoRA-PT \& LoRA-FT)       & Qwen           & 7.8 $\pm$ 2.59                    & \textbf{1.12 (0.31+0.81)}    \\
+        —                         & ICAE (LoRA-PT \& LoRA-FT)      & Qwen (LoRA-FT)   & 10          & \underline{1.13}              \\
+        \hline
+    \end{tabular}
+    \caption{Performance comparison of different model configurations on SWE-bench Verified. \texttt{Baseline} is a Qwen3-8B model wihtout any fine-tuning.}
+    \label{tab:qwen_icae_variants_absolute}
+  \end{table}
 
 We first establish two naive baselines to demonstrate the importance of retaining observation context.
 The "del long obs-s" approach discards any observation exceeding 256 tokens, while "del all obs-s" removes all observations entirely.
@@ -348,52 +379,18 @@ The base Qwen3-8B model without any fine-tuning ("\texttt{Baseline}") serves as 
 It resolves 19.4 $\pm$ 6.5 issues, establishing a solid baseline for an off-the-shelf model on this task.
 The uncertainty ($\pm$ 6.5) represents the standard deviation across multiple evaluation runs (five runs for each model), quantifying the variability in the model's performance.
 
-%
-
-\begin{table}[h]
-  \centering
-  \small
-  \setlength{\tabcolsep}{4pt}
-  \renewcommand{\arraystretch}{1.05}
-
-  \begin{tabular}{|l|ll|cc|}
-      \hline
-      \textbf{Name in our paper} & \textbf{Encoder} & \textbf{Decoder} & \textbf{Resolved (/500) $\uparrow$} & \textbf{Time (s) $\downarrow$} \\
-      \hline
-      \multicolumn{5}{|l|}{\hspace{1em}\textit{Naive Baselines}} \\
-      \hline
-      —                         & del long obs-s            &     Qwen       & 1         & 0.44                      \\
-      —                         & del all obs-s             &     Qwen       & 0         & 0.39                      \\
-      \hline
-      \multicolumn{5}{|l|}{\hspace{1em}\textit{Baselines}} \\
-      \hline
-      —                         & —                         & Qwen (full-finetuned)   & \textbf{86}                       & 1.24                      \\
-      Baseline+FT               & —                         & Qwen (LoRA-finetuned)   & 10      & 1.24                      \\
-      Baseline                  & —                         & Qwen   & \underline{19.4 $\pm$ 6.5}                        & 1.23                      \\
-      \hline
-      \multicolumn{5}{|l|}{\hspace{1em}\textit{ICAE Compression (ours)}} \\
-      \hline
-      ICAE-PT                   & ICAE (pretrained)         & Qwen           & 19.4 $\pm$ 6.5                    & 1.23                      \\
-      ICAE-PT+FT                & ICAE (pretrained \& LoRA-finetuned)       & Qwen           & 7.8 $\pm$ 2.59                    & \textbf{1.12 (0.31+0.81)}    \\
-      —                         & ICAE (pretrained \& LoRA-finetuned)      & Qwen (LoRA-finetuned)   & 10          & \underline{1.13}              \\
-      \hline
-  \end{tabular}
-  \caption{Performance comparison of different model configurations on SWE-bench Verified. \texttt{Baseline} is a Qwen3-8B model wihtout any fine-tuning.}
-  \label{tab:qwen_icae_variants_absolute}
-\end{table}
-
 
 
 \begin{figure}[hbt]
   \centering
   \begin{subfigure}[b]{0.49\textwidth}
-      \includegraphics[width=\textwidth]{graphs/bleu_swe-bench_trajectories_ar.pdf}
+      \includegraphics[width=\textwidth]{graphs/bleu/bleu_swe-bench.pdf}
       \caption{BLEU scores on SWE-bench}
       \label{fig:bleu_swe-bench}
   \end{subfigure}
   \hfill
-  \begin{subfigure}[b]{0.49\textwidth}
-      \includegraphics[width=\textwidth]{graphs/boxplot-main.png}
+  \begin{subfigure}[b]{0.40\textwidth}
+      \includegraphics[width=\textwidth]{graphs/boxplot-main.pdf}
       \caption{Box plot comparison of the baseline against the \texttt{ICAE-PT+FT} model}
       \label{fig:boxplot}
   \end{subfigure}
@@ -447,12 +444,12 @@ In this section, we address \hyperref[rq:1]{RQ1}, investigating how implicit con
 We measure efficiency in terms of two key metrics: trajectory length (the number of interaction steps possible within the context window) and inference time (the latency of generating a tool call).
 
 \paragraph{Trajectory Length.}
-Firstly, we analyze the number of interaction steps each agent could perform before reaching the context window limit of 32,768 tokens.
+Firstly, we analyze the number of interaction steps each agent could perform before termination. For this analysis, the default 75-turn hard cap was disabled, and termination occurred when the context window limit of 32,768 tokens was reached.
 Our findings provide a clear affirmative answer regarding the benefits of compression.
 The \texttt{ICAE-PT+FT} model was able to execute significantly longer trajectories compared to the uncompressed baseline.
 On average, the compressed agent performed 113 steps before termination, a 40\% increase over the baseline's average of 81 steps.
 This demonstrates that by condensing lengthy observations into a fixed number of memory tokens, our approach effectively creates more space within the context window, enabling the agent to engage in more extensive problem-solving dialogues.
-
+ 
 The difference in trajectory length is further illustrated by the box plot in Figure~\ref{fig:boxplot-stepcount}.
 The plot compares the distribution of step counts at termination for the baseline agent and the ICAE-compressed agent.
 The mean step count for the ICAE agent is visibly higher than that of the baseline, and the entire interquartile range is shifted upwards.
@@ -461,7 +458,7 @@ Although both models exhibit outliers representing exceptionally long trajectori
 
 \begin{figure}[hbt]
     \centering
-    \includegraphics[width=0.6\textwidth]{graphs/boxplot-stepcount.jpg}
+    \includegraphics[width=0.65\textwidth]{graphs/boxplot-stepcount.pdf}
     \caption{Comparison of the number of steps at termination for the baseline model and the ICAE-compressed model}
     \label{fig:boxplot-stepcount}
 \end{figure}
@@ -487,7 +484,7 @@ These findings confirm that implicit context condensation positively influences 
 
 \begin{figure}[hbt]
     \centering
-    \includegraphics[width=1.0\textwidth]{graphs/bleu_all_datasets.pdf}
+    \includegraphics[width=1.0\textwidth]{graphs/bleu/bleu_all_datasets.pdf}
     \caption{BLEU scores comparison across all datasets}
     \label{fig:bleu_all_datasets}
 \end{figure}

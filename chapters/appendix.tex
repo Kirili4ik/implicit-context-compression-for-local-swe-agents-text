@@ -9,9 +9,41 @@
 
 I \textbf{have} used generative AI to help me write the text for this work.\\
 I \textbf{have} used generative AI to help me write the code for the experiments.\\
-I \textbf{have not} used AI in order to create new experiments, nor for any goals, research questions, hypotheses, etc.
+I \textbf{have not} used AI in order to create new experiments, nor for any goals, research questions, hypotheses and other types of research-related work.
 
+\section{SWE-smith First User Message}
+\label{app:swe-smith-first-user-message}
 
+\begin{tcolorbox}[title={SWE-smith First User Message},
+    colback=white, colframe=black, fonttitle=\bfseries,
+    breakable, sharp corners=south, enhanced jigsaw]
+    \begin{Verbatim}[breaklines=true, obeytabs=false,breaksymbol={},breakindent=0pt,fontsize=\tiny]
+<|im_start|>user
+<uploaded_files>
+<repo_path>*
+</uploaded_files>
+I've uploaded a python code repository in the directory /mnt/shared-fs/gelvan/swe-agent-distillation. Consider the following PR description:
+
+<pr_description>
+<issue_description>*
+</pr_description>
+
+Can you help me implement the necessary changes to the repository so that the requirements specified in the <pr_description> are met?
+I've already taken care of all changes to any of the test files described in the <pr_description>. This means you DON'T have to modify the testing logic or any of the tests in any way!
+Your task is to make the minimal changes to non-tests files in the /mnt/shared-fs/gelvan/swe-agent-distillation directory to ensure the <pr_description> is satisfied.
+Follow these steps to resolve the issue:
+1. As a first step, it might be a good idea to find and read code relevant to the <pr_description>
+2. Create a script to reproduce the error and execute it with `python <filename.py>` using the bash tool, to confirm the error
+3. Edit the source code of the repo to resolve the issue
+4. Rerun your reproduce script and confirm that the error is fixed!
+5. Think about edgecases and make sure your fix handles them as well
+Your thinking should be thorough and so it's fine if it's very long.<|im_end|>
+  \end{Verbatim}
+\end{tcolorbox}
+*\texttt{<issue\_description>} is replaced with the specific problem description for each SWE-bench task.
+*\texttt{<repo\_path>} is replaced with the path to the repository.
+
+\newpage
 \section{SWE-smith Prompt}
 \label{app:swe-smith-prompt}
 
@@ -87,41 +119,7 @@ The following prompt is from the SWE-smith paper \cite{yang2025swe}.
   \end{Verbatim}
   \end{tcolorbox}
 
-\section{SWE-smith First User Message}
-\label{app:swe-smith-first-user-message}
-
-\begin{tcolorbox}[title={SWE-smith First User Message},
-    colback=white, colframe=black, fonttitle=\bfseries,
-    breakable, sharp corners=south, enhanced jigsaw]
-    \begin{Verbatim}[breaklines=true, obeytabs=false,breaksymbol={},breakindent=0pt,fontsize=\tiny]
-<|im_start|>user
-<uploaded_files>
-<repo_path>*
-</uploaded_files>
-I've uploaded a python code repository in the directory /mnt/shared-fs/gelvan/swe-agent-distillation. Consider the following PR description:
-
-<pr_description>
-<issue_description>*
-</pr_description>
-
-Can you help me implement the necessary changes to the repository so that the requirements specified in the <pr_description> are met?
-I've already taken care of all changes to any of the test files described in the <pr_description>. This means you DON'T have to modify the testing logic or any of the tests in any way!
-Your task is to make the minimal changes to non-tests files in the /mnt/shared-fs/gelvan/swe-agent-distillation directory to ensure the <pr_description> is satisfied.
-Follow these steps to resolve the issue:
-1. As a first step, it might be a good idea to find and read code relevant to the <pr_description>
-2. Create a script to reproduce the error and execute it with `python <filename.py>` using the bash tool, to confirm the error
-3. Edit the source code of the repo to resolve the issue
-4. Rerun your reproduce script and confirm that the error is fixed!
-5. Think about edgecases and make sure your fix handles them as well
-Your thinking should be thorough and so it's fine if it's very long.<|im_end|>
-  \end{Verbatim}
-\end{tcolorbox}
-*\texttt{<issue\_description>} is replaced with the specific problem description for each SWE-bench task.
-*\texttt{<repo\_path>} is replaced with the path to the repository.
-
-  
-
-  
+\newpage
 \section{ICAE In-Context Ability Proof-of-Concept}
 \label{app:icae-proof}
 
@@ -177,8 +175,12 @@ $ str_replace_editor --command view --path /mnt/shared-fs/gelvan/swe-agent-disti
 \colorbox{yellow}{$ cat /mnt/shared-fs/gelvan/swe-agent-distillation/.my_secret_requirements.txt}<|im_end|>
   \end{Verbatim}
 \end{tcolorbox}
-This example demonstrates a hand-crafted scenario, closely related to SWE-bench, designed to test the model's ability to comprehend and utilize decompressed data from its memory. The highlighted part shows the model successfully identifying a hidden requirements file by using the context provided in its compressed memory.
 *\texttt{<system\_prompt>} is from Appendix~\ref{app:swe-smith-prompt}.
+
+This example demonstrates a hand-crafted scenario, closely related to SWE-bench, designed to test the model's ability to comprehend and utilize decompressed data from its memory. The highlighted part shows the model successfully identifying a hidden requirements file by using the context provided in its compressed memory.
+
+This proof-of-concept demonstrates that the ICAE framework can successfully retrieve and utilize information from compressed memory in principle. However, it is important to note that this success in a controlled, hand-crafted scenario does not translate to robust performance in practice. As shown in Table~\ref{tab:qwen_icae_variants_absolute}, the \texttt{ICAE-PT+FT} model resolved only 7.8 $\pm$ 2.59 issues on SWE-bench Verified, compared to the baseline's 19.4 $\pm$ 6.5 issues, indicating that while the model can access compressed information in isolated cases, it struggles to maintain task performance in the full complexity of multi-turn agentic interactions.
+
 
 \section{Ablation Experiment: Disabling Thinking}
 \label{sec:disabling_thinking}
@@ -309,8 +311,4 @@ This ablation study may be of interest to future work involving the Qwen3 model 
 All experiments were conducted on a single server equipped with an Intel processor and 1× NVIDIA H200 GPU. We utilized only one GPU for all training and evaluation tasks to ensure consistency across experiments.
 
 \subsection{Reproducibility Resources}
-To ensure full reproducibility, we provide our complete implementation\footnote{\url{https://github.com/JetBrains-Research/icae}}, full Weights \& Biases experiment logs for pretraining\footnote{\url{https://wandb.ai/kirili4ik/icae-pretraining}} and fine-tuning\footnote{\url{https://wandb.ai/kirili4ik/icae-swebench-finetune}}, and model checkpoints\footnote{\textbf{TODO}}\footnote{\textbf{TODO}}.
-
-\textbf{TODO: 4 is Pretrained model checkpoints achieving 95\% reconstruction BLEU:}
-
-\textbf{TODO: 5 is Fine-tuned models that outperform uncompressed baselines on SQuAD:}
+To ensure full reproducibility, we provide our complete implementation\footnote{\url{https://github.com/JetBrains-Research/icae}}, full Weights \& Biases experiment logs for pretraining\footnote{\url{https://wandb.ai/kirili4ik/icae-pretraining}} and fine-tuning\footnote{\url{https://wandb.ai/kirili4ik/icae-swebench-finetune}}, and model checkpoints\footnote{\url{https://huggingface.co/Kirili4ik/icae}}.

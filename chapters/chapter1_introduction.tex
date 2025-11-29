@@ -62,7 +62,7 @@ Figure \ref{fig:example1} illustrates the core concept.
 
 \begin{figure}[hbt]
   \centering
-  \includegraphics[width=\textwidth]{graphs/example1.jpeg}
+  \includegraphics[width=\textwidth]{graphs/example1.pdf}
   \caption{Comparison between a base agent and our agent approach for handling large observations exceeding the LLM's context length. The base agent fails when processing long observations directly, while our agent successfully compresses the observation into a fixed set of embeddings before LLM processing, enabling continued task execution.}
   \label{fig:example1}
 \end{figure}
@@ -98,4 +98,4 @@ The results of this study are presented in the \textbf{\hyperref[cha:experiments
 A critical analysis of the factors contributing to these outcomes is provided in the \textbf{\hyperref[cha:discussion]{Discussion}}.
 The thesis then addresses its \textbf{\hyperref[cha:limitations]{Limitations and Future Work}}, which includes the constraints of fixed-length condensation, the KV-caching and the potential bottleneck of LoRA-based fine-tuning.
 Finally, the \textbf{\hyperref[cha:conclusion]{Conclusion}} summarizes the key contributions of the thesis.
-The results confirm that the method enables longer agentic trajectories and reduces inference time (\hyperref[rq:1]{RQ1}). Regarding the transferability of performance (\hyperref[rq:2]{RQ2}), the findings show effective transfer to code-related tasks, whereas a reduction in quality is observed in agentic software engineering tasks.
+The results confirm that the method enables longer agentic trajectories and reduces inference time (\hyperref[rq:1]{RQ1}). Regarding the transferability of performance (\hyperref[rq:2]{RQ2}), the findings show effective transfer to single-shot software engineering tasks, whereas a reduction in quality is observed in the agentic setup.
