@@ -11,26 +11,26 @@ The reviewed approaches can be broadly categorized into: 1) implicit, embedding-
 \section{Approaches to Context Management and Agentic Training}
 
 \paragraph{In-Context Autoencoder (ICAE)}
-As an approach to implicit context compression, the In-Context Autoencoder (ICAE) introduced by \textcite{ge2023context} is an encoder–decoder scheme that compresses an input context into a fixed number of ``memory slots'' (continuous tokens) and conditions the base LLM on these slots instead of the original prompt.
+As an approach to implicit context compression, the In-Context Autoencoder (ICAE) introduced by \textcite{ge2023context} is an encoder–decoder scheme that compresses an input context into a fixed number of "memory slots" (continuous tokens) and conditions the base LLM on these slots instead of the original prompt.
 The number of these memory slots is a key hyperparameter that must be determined prior to pretraining. To handle inputs that exceed its training context length, ICAE employs a chunking strategy: the long context is segmented, each chunk is independently compressed into a span of memory slots, and these spans are then concatenated.
 In pretraining, the encoder produces $k$ memory tokens from a longer input, and the decoder is trained to reconstruct the original text; at inference, downstream tasks are solved by attending to the memory tokens rather than the raw prompt.
 The paper studies both pretrained ICAE (autoencoding + language-modeling objective) and fine-tuned ICAE for instruction-following, showing that memory tokens serve as a compact, trainable context representation.
 The authors also analyze when and why compression degrades, e.g., over-4$\times$ ratios become challenging, and how stronger base models tolerate higher compression.
 
-With 4$\times$ compression, the pretrained ICAE achieves a score of $\approx$ 99\% on autoencoding, as measured by the Bilingual Evaluation Understudy (BLEU) metric~\parencite{papineni2002bleu}, across Llama-2~\parencite{touvron2023llama} models and small increases in perplexity at continuation time (e.g., PPL 9.01$\rightarrow$9.50), indicating near-lossless retention at 4$\times$ on natural text.
+With 4$\times$ compression, the pretrained ICAE achieves a score of $\approx$ 99\% on autoencoding, as measured by the Bilingual Evaluation Understudy (BLEU) metric~\parencite{papineni2002bleu}, across Llama-2~\parencite{touvron2023llama} models and slight increases in perplexity at continuation time (e.g., PPL 9.01$\rightarrow$9.50), indicating near-lossless retention at 4$\times$ on natural text.
 When applied to instruction-following tasks, ICAE memory tokens are competitive with or stronger than baselines that read full $\sim$512-token contexts, e.g., Llama-7B (ICAE) vs Alpaca: 73.1\% win+tie.
 Moreover, this compression leads to significant speed improvements, with measured end-to-end speedups reaching 2.2–3.6$\times$ in cacheable regimes where memory slots are pre-computed.
 
 ICAE is the most direct prior for our implicit compression: we also encode contexts into continuous embeddings and condition the model on the learned memory tokens, but extend the setting to newer backbones and coding/agentic workloads (SWE-style trajectories).
-We also emphasize agent-trajectory fine-tuning over SWE-bench-like tasks, which \textcite{ge2023context} did not target; for later chapters, this section supplies the technical background (slots, compression ratios, fidelity–throughput trade-offs) we build on.
+We also emphasize agent-trajectory fine-tuning over SWE-bench-like tasks, which \textcite{ge2023context} did not target. For later chapters, this section providesthe technical background (slots, compression ratios, and fidelity–throughput trade-offs) that we build upon.
 
 \paragraph{LLMLingua-2}
 \textcite{pan2024llmlingua} introduce LLMLingua-2, a task-agnostic method for explicit prompt compression.
 It moves beyond entropy-based pruning by training a dedicated token classifier to identify and discard redundant tokens.
-This compressor—a small, efficient Transformer encoder like XLM-RoBERTa—learns from a dataset created via data distillation from GPT-4, making the approach model-agnostic and applicable to black-box LLMs.
-By leveraging bidirectional context, it can more accurately assess token importance than causal models.
+This compressor—a small, efficient Transformer encoder, similar to XLM-RoBERTa—learns from a dataset created via data distillation from GPT-4, making the approach model-agnostic and applicable to black-box LLMs.
+By leveraging bidirectional context, it can more accurately assess the importance of tokens than causal models.
 
-The method demonstrates impressive performance, achieving substantial compression with minimal fidelity loss.
+The method demonstrates impressive performance, achieving substantial compression with minimal loss of fidelity.
 On the in-domain MeetingBank benchmark, \textcite{pan2024llmlingua} achieve 3.1$\times$ compression (from 3,003 to 970 tokens) while scoring 86.9\% EM on a QA task, nearly matching the original prompt's 87.8\%.
 For reasoning, they achieve 79.1\% EM on GSM8K~\parencite{cobbe2021training} with 5$\times$ compression, on par with the full uncompressed baseline.
 This efficiency translates to significant end-to-end speedups of 1.6$\times$ to 2.9$\times$.
@@ -38,7 +38,7 @@ Notably, when paired with Mistral-7B, the compressed prompt outperforms the orig
 
 The approach of \textcite{pan2024llmlingua}, however, is fundamentally extractive and therefore lossy, which contrasts with the implicit, continuous compression (which theoretically can be lossless).
 Because it operates by deleting surface tokens, it risks removing subtle syntactic or semantic details that are critical in code generation and repair.
-Furthermore, its evaluation focuses on single-turn NLP tasks like QA and summarization, whereas our work targets the distinct challenges of multi-turn, agentic software engineering trajectories.
+Furthermore, its evaluation focuses on single-turn NLP tasks, sucg as QA and summarization, whereas our work targets the distinct challenges of multi-turn, agentic software engineering trajectories.
 
 \paragraph{SlimCode}
 \textcite{wang2024natural} propose SlimCode, an explicit and model-agnostic method that simplifies code by removing tokens based on their intrinsic properties rather than model-specific attention scores.
@@ -52,31 +52,31 @@ In contrast, removing identifiers, which make up only 15.5\% of tokens, results 
 Overall, \textcite{wang2024natural} outperform the prior state-of-the-art, DietCode, by 9.46\% on MRR and 5.15\% on BLEU, while being up to 133 times faster at the pruning process itself.
 Furthermore, when applied to GPT-4, SlimCode can reduce API costs by 24\% and inference time by 27\%, and can even yield slight performance improvements at high compression ratios.
 
-While \textcite{wang2024natural} offer a powerful, model-agnostic solution for code understanding tasks and cost reduction, their explicit, token-deleting nature makes it less suitable for our focus on agentic coding.
+While \textcite{wang2024natural} offer a robust, model-agnostic solution for code understanding tasks and cost reduction, their explicit, token-deleting nature makes it less suitable for our focus on agentic coding.
 By deleting surface tokens, this approach risks removing subtle syntactic or semantic constraints that are crucial for complex, multi-turn code generation and repair tasks.
 Our work instead focuses on implicit compression in the embedding space, trained end-to-end on coding trajectories to better align with the demands of generative and tool-use scenarios.
 
 \paragraph{Soft Tokens}
 Another line of research uses continuous representations for reasoning.
-For instance, \textcite{butt2025soft} introduce a scalable method to train models on continuous or ``soft'' chain-of-thought (CoT) trajectories using reinforcement learning (RL).
+For instance, \textcite{butt2025soft} introduce a scalable method to train models on continuous or "soft" chain-of-thought (CoT) trajectories using reinforcement learning (RL).
 Their approach avoids costly distillation from discrete CoTs by injecting noise into input embeddings, which enables exploration and allows for learning long continuous thought vectors.
 The work compares this soft/fuzzy training against traditional hard-token CoT across Llama and Qwen models on mathematical reasoning benchmarks like GSM8K and MATH, studying both performance and out-of-distribution (OOD) robustness.
 
 The results demonstrate that continuous CoT training is highly effective.
 On benchmarks like GSM8K, models trained with soft tokens achieve parity with discrete training on pass@1 accuracy (e.g., 77.2\% for a soft-trained Llama-3B vs. 75.9\% for a hard-trained one) while significantly improving pass@32 scores (97.9\% vs. 94.1\%).
 This suggests that continuous training encourages a greater diversity of valid reasoning paths.
-A key operational takeaway is that the best performance is consistently achieved by using standard ``hard'' (discrete) decoding at inference time, even on models trained with continuous tokens.
+A key operational takeaway is that the best performance is consistently achieved by using standard "hard" (discrete) decoding at inference time, even for models trained with continuous tokens.
 This allows practitioners to benefit from soft training without altering existing deployment pipelines.
 
-Furthermore, the method provides a ``softer touch'' to fine-tuning, better preserving the base model's capabilities on OOD tasks.
+Furthermore, the method provides a "softer touch" to fine-tuning, better preserving the base model's capabilities on OOD tasks.
 While hard-token training can degrade a model's general knowledge (as measured by NLL on benchmarks like HellaSwag~\parencite{zellers2019hellaswag}, ARC~\parencite{clark2018think}, and MMLU~\parencite{hendrycks2020measuring}), soft-token training maintains it.
-A striking example is a Llama-8B model trained on GSM8K: when tested on the MATH dataset, the hard-trained model's performance collapses (20.2\% pass@1), whereas the soft-trained model generalizes well, recovering to 44.7\% pass@1.
+A striking example is the Llama-8B model trained on GSM8K: when tested on the MATH dataset, the hard-trained model's performance collapses (20.2\% pass@1), whereas the soft-trained model generalizes well, recovering to 44.7\% pass@1.
 
 While this work focuses on reasoning traces rather than context compression, it is conceptually adjacent to our research as both approaches embed complex information into learned continuous vectors.
 The authors show that these continuous representations can be scaled to hundreds of tokens and trained stably with RL.
 Our work applies a similar principle, but at the level of context compression rather than thought-level reasoning.
 We then fine-tune on agentic coding trajectories, a different domain from the mathematical tasks studied in their work.
-Nonetheless, we build on the shared finding that continuous latent representations can be effectively trained and then decoded using standard hard inference, a principle that holds for our memory tokens as well.
+Nonetheless, we build on the shared finding that continuous latent representations can be effectively trained and then decoded using standard hard inference, a principle that also holds for our memory tokens.
 
 \paragraph{Infini-Attention}
 As an architectural modification for long contexts, Infini-attention \parencite{munkhdalai2024leave} equips transformers with a compressive memory pathway that summarizes long-range keys/values while keeping local attention intact.
@@ -84,12 +84,12 @@ The resulting Infini-Transformer aims to maintain useful information over very l
 The mechanism combines a standard local dot-product attention with a long-term compressive memory that is updated incrementally using a linear attention mechanism.
 A learned gating scalar then mixes the outputs of the local attention and the compressive memory, allowing the model to balance between short-term and long-term context.
 
-On long-context language modeling benchmarks like PG19 and ArXiv-math, the Infini-Transformer outperforms Transformer-XL and Memorizing Transformers.
+On long-context language modeling benchmarks, such as PG19~\parencite{rae2019compressive}, the Infini-Transformer outperforms Transformer-XL and Memorizing Transformers.
 It achieves this while using 114$\times$ fewer memory parameters than a baseline with a 65K-length vector-retrieval memory.
 Performance further improves when trained on sequences up to 100K tokens, with perplexity on ArXiv-math dropping to approximately 2.20.
 
 The model demonstrates remarkable long-context capabilities, achieving near-perfect passkey retrieval at sequence lengths of 1 million tokens and setting a new state-of-the-art on a 500K-token book summarization task.
-These gains, however, require modifying the model's architecture and either pretraining from scratch or undergoing extensive continued pre-training.
+These gains, however, require modifying the model's architecture and either pretraining from scratch or undergoing extensive continued pretraining.
 Our approach, in contrast, remains compatible with existing LLMs by using ICAE-style memory tokens.
 We focus on fine-tuning these representations for agentic coding tasks, whereas \textcite{munkhdalai2024leave} offer a complementary solution for scenarios where processing raw, ultra-long contexts is indispensable.
 
@@ -112,7 +112,7 @@ Our method integrates this concept of trajectory-based fine-tuning with an ICAE-
 \paragraph{Synthesis of Prior Work}
 The reviewed literature on long-context management for large language models reveals several distinct methodologies.
 Explicit, token-level compression methods, such as LLMLingua-2 \parencite{pan2024llmlingua} and SlimCode \parencite{wang2024natural}, operate by removing tokens from the input, which provides model-agnostic efficiency but risks the loss of critical information for generative tasks.
-In contrast, architectural modifications like Infini-attention \parencite{munkhdalai2024leave} redesign the Transformer model itself to process theoretically infinite context streams, though this requires resource-intensive pre-training from scratch.
+In contrast, architectural modifications, such as Infini-attention \parencite{munkhdalai2024leave}, redesign the Transformer model itself to process theoretically infinite context streams, although this requires resource-intensive pretraining from scratch.
 Another line of research investigates implicit compression using continuous representations, where techniques like the In-Context Autoencoder (ICAE) \parencite{ge2023context} and soft reasoning traces \parencite{butt2025soft} learn to encode information into dense vectors without altering the base model architecture.
 Finally, methods such as AgentTuning \parencite{zeng2024agenttuning} focus on improving agentic capabilities through fine-tuning on interaction trajectories, but do not directly address the long-context limitation.
 

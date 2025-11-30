@@ -1,7 +1,7 @@
 \chapter{Conclusion}
 \label{cha:conclusion}
 
-This thesis examined implicit context condensation for software-engineering agents, instantiating the approach with an In-Context Autoencoder (ICAE) built on Qwen3-8B and evaluating it on question answering (SQuAD), code reconstruction (RepoQA), and end-to-end agentic SWE tasks (SWE-bench Verified).
+This thesis examined implicit context condensation for software engineering agents, instantiating the approach with an In-Context Autoencoder (ICAE) built on Qwen3-8B and evaluating it on question answering (SQuAD), code reconstruction (RepoQA), and end-to-end agentic SWE tasks (SWE-bench Verified).
 The work also assessed training-free and lightweight learned compression attempts, and documented efficiency effects and limits.
 
 \section{Summary of Contributions}
@@ -13,16 +13,16 @@ The work also assessed training-free and lightweight learned compression attempt
 	
 	\item \textbf{A multi-domain evaluation of implicit compression.}
 	The method was benchmarked across three distinct domains: open-domain question answering (SQuAD, see Table~\ref{tab:icae_squad}), code reconstruction (RepoQA, see Figure~\ref{fig:repoqa_metrics}), and agentic software engineering (SWE-bench Verified, see Table~\ref{tab:qwen_icae_variants_absolute}).
-	This broad evaluation provides a granular view of the trade-offs involved, indicating that performance on standard NLP tasks does not necessarily transfer to multi-turn, interactive agentic settings.
+	This comprehensive evaluation offers a granular understanding of the trade-offs involved, suggesting that performance on standard NLP tasks does not necessarily transfer to multi-turn, interactive agentic settings.
 	
 	\item \textbf{Quantification of performance trade-offs.}
 	The empirical results establish a trade-off.
 	ICAE improves question-answering accuracy (Table~\ref{tab:icae_squad}) and allows for longer agent trajectories (Figure~\ref{fig:boxplot-stepcount}) with a modest generational time reduction (Table~\ref{tab:qwen_icae_variants_absolute}).
 	However, under the tested configuration, it degrades end-to-end task resolution on SWE-bench Verified (Table~\ref{tab:qwen_icae_variants_absolute}).
-	This suggests that for other researchers, the value of this compression approach is task-dependent and highlights a critical challenge: maintaining high-fidelity information in compressed state representations for multi-step tasks.
+	This suggests that for other researchers, the value of this compression approach is task-dependent, highlighting a critical challenge: maintaining high-fidelity information in compressed state representations for multi-step tasks.
 	
 	\item \textbf{Exclusion of simpler compression alternatives.}
-	The research also documents the failure of simpler, training-free condensation methods (e.g., averaging, see Table~\ref{tab:avg_variants}) and lightweight projectors (Figure~\ref{fig:squad_metrics}).
+	The research also documents the failure of simpler, training-free condensation methods (e.g., averaging, as shown in Table~\ref{tab:avg_variants}) and lightweight projectors (Figure~\ref{fig:squad_metrics}).
 	This finding steers future work away from trivial baselines and reinforces the need for expressive compressors to create useful context representations.
 	
 	\item \textbf{Publicly available implementation and experimental artifacts.}
@@ -31,23 +31,23 @@ The work also assessed training-free and lightweight learned compression attempt
 \end{enumerate}
 
 
+
 \section{Synthesis of Findings}
 
 \textbf{RQ1 --- Efficiency: Longer trajectories and generation speed.}
 Implicit context condensation increased the number of agent steps before context overflow (113 vs.\ 81 on average, a 40\% increase) and reduced per-call generation time by approximately 10\% (1.12 seconds vs.\ 1.23 seconds for the baseline).
-The compressed agent's total time comprises 0.31 seconds for observation compression and 0.81 seconds for tool-call generation.
-Thus, the method does allow completion of longer trajectories under a fixed context window, and it improves efficiency.
-However, these benefits did not raise the solve rate on SWE-bench Verified in this setting (\Cref{tab:qwen_icae_variants_absolute}; \Cref{fig:boxplot-stepcount}).
+The compressed agent's total time comprises 0.31 seconds for observation compression and 0.81 seconds for tool call generation.
+Thus, the method enables the completion of longer trajectories under a fixed context window, thereby improving efficiency.
 
 \textbf{RQ2 --- Transferability: NLP to Agentic SWE.}
 Performance gains observed on SQuAD and preserved fidelity on RepoQA indicate successful transfer to single-shot software engineering tasks.
-However, these benefits did not extend to the agentic setup in end-to-end SWE-bench Verified.
+However, these benefits did not extend to the agentic setup in end-to-end SWE-bench Verified (\Cref{tab:qwen_icae_variants_absolute}; \Cref{fig:boxplot-stepcount}).
 The model learned to predict next actions well on static trajectories (higher BLEU) yet under-resolved tasks when its own actions shaped subsequent observations (\Cref{fig:repoqa_metrics} vs.\ \Cref{fig:bleu-boxplot-combined}).
-This gap highlights the difference between offline imitation or single-shot tasks and online, multi-turn control in software-engineering environments (\Cref{sec:rq2_performance_domains}).
+This gap highlights the difference between offline imitation or single-shot tasks and online, multi-turn control in software engineering environments (\Cref{sec:rq2_performance_domains}).
 
 \textbf{Overall interpretation.}
 ICAE-style implicit condensation is suitable when the goal is to read more context or run longer with moderate accuracy demands, and it is effective for extractive QA and single-shot SWE tasks with task-specific fine-tuning.
-In contrast, for agentic SWE tasks where agents must plan, act, and recover from their own intermediate outputs, the present configuration ($4\times$ compression; LoRA-only encoder; disabled reasoning) shows decrease in the ability to solve the tasks end-to-end.
-The limitations chapter lists concrete avenues for future research (full-parameter fine-tuning of the encoder, higher-fidelity AE for code, adaptive memory sizing, enabling reasoning) that follow directly from the observed failure modes and should likely address the current shortcomings (\Cref{sec:limitations,sec:kv_caching,sec:comp_resources}).
+In contrast, for agentic SWE tasks where agents must plan, act, and recover from their own intermediate outputs, the present configuration ($4\times$ compression; LoRA-only encoder; disabled reasoning) shows a decrease in the ability to solve the tasks end-to-end.
+The limitations chapter lists concrete avenues for future research (full-parameter fine-tuning of the encoder, higher-fidelity AE for code, adaptive memory sizing, enabling reasoning) that follow directly from the observed failure modes and should likely address the current shortcomings (\Cref{sec:limitations}, \Cref{sec:kv_caching}, \Cref{sec:comp_resources}).
 
-In summary, the approach allows agents to run longer and faster, works for QA and single-shot coding tasks, but does not improve (and in this setup harms) agentic end-to-end SWE-bench solve rates.
+In summary, the approach enables agents to run longer and faster, is applicable for QA and single-shot coding tasks, but does not improve (and, in this setup, actually harms) agentic end-to-end SWE-bench resolve rates.

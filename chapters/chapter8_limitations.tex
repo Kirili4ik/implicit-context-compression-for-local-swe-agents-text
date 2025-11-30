@@ -15,7 +15,7 @@ This fixed-length strategy is based on the assumption that all tokens in the con
 \section{Limitations of KV-caching}
 \label{sec:kv_caching}
 A notable limitation of our experimental setup is the exclusion of Key-Value (KV) caching, a standard optimization for autoregressive inference in Transformer models.
-For methodological simplicity and to isolate the effects of context compression, in our experiments we recomputed the full attention state at each decoding step.
+For methodological simplicity and to isolate the effects of context compression, in our experiments, we recomputed the full attention state at each decoding step.
 
 However, the ICAE framework is fully compatible with KV-caching.
 The continuous embeddings produced by the encoder can be treated as a fixed prefix, and their corresponding key-value states can be pre-computed and cached.
@@ -26,7 +26,7 @@ While KV-caching is essential for production deployment to achieve practical inf
 \label{sec:comp_resources}
 
 \subsection{Model Scale}
-Due to computational and time constraints, our experiments were confined to the Qwen3-8B model. While evaluating on the full 500-issue SWE-bench Verified dataset provides sufficient statistical power for robust comparisons at this scale, an important direction for future research is to investigate ICAE's effectiveness on larger models like Qwen3-32B. It remains an open question whether larger models, with their increased capacity, can better leverage compressed representations or if they are more sensitive to information loss during compression.
+Due to computational and time constraints, our experiments were confined to the Qwen3-8B model. While evaluating the full 500-issue SWE-bench Verified dataset provides sufficient statistical power for robust comparisons at this scale, an important direction for future research is to investigate ICAE's effectiveness on larger models like Qwen3-32B. It remains an open question whether larger models, with their increased capacity, can better leverage compressed representations or if they are more sensitive to information loss during compression.
 
 \subsection{Full Fine-Tuning and the LoRA Bottleneck}
 Our experiments with ICAE exclusively utilized LoRA for parameter-efficient fine-tuning, consistent with the original work.
@@ -36,7 +36,7 @@ Consequently, applying full fine-tuning to the ICAE encoder is not merely an opt
 Our open-sourced codebase facilitates this, and we identify it as the most important next step for future research.
 
 \subsection{Disabled Reasoning}
-For methodological simplicity, we disabled the Qwen3 decoder model's reasoning(i.e. "thinking") mechanism, which is designed to improve performance on complex reasoning tasks. Enabling this feature could prove highly beneficial, as it might allow the model to iteratively reason over the compressed knowledge stored in memory slots, potentially leading to better decision-making. Given that chain-of-thought reasoning has been shown to dramatically improve performance on various benchmarks, exploring the interaction between compressed context and explicit reasoning steps is a critical avenue for future research.
+For methodological simplicity, we disabled the Qwen3 decoder model's reasoning (i.e., "thinking") mechanism, which is designed to improve performance on complex reasoning tasks. Enabling this feature could prove highly beneficial, as it might allow the model to iteratively reason over the compressed knowledge stored in memory slots, potentially leading to better decision-making. Given that chain-of-thought reasoning has been shown to dramatically improve performance on various benchmarks, exploring the interaction between compressed context and explicit reasoning steps is a critical avenue for future research.
 
 
 \section{Open Source Contributions and Reproducibility}
@@ -44,7 +44,7 @@ For methodological simplicity, we disabled the Qwen3 decoder model's reasoning(i
 
 We reimplemented the ICAE framework from scratch, as the original authors' code was outdated and difficult to adapt to our experimental needs.
 Our implementation is modular and provides separate training pipelines for both pretraining (PT) and fine-tuning (FT).
-We support pretraining on general text datasets and fine-tuning on question-answering, repo-qa tasks and agentic trajectories.
+We support pretraining on general text datasets and fine-tuning on question-answering, repo-qa tasks, and agentic trajectories.
 
 To advance the field of context compression for software engineering agents, we release our complete implementation, including pretrained models achieving 95\% reconstruction BLEU.
 To ensure full reproducibility, we provide our complete implementation\footnote{\url{https://github.com/JetBrains-Research/icae}}, full Weights \& Biases experiment logs for pretraining\footnote{\url{https://wandb.ai/kirili4ik/icae-pretraining}} and fine-tuning\footnote{\url{https://wandb.ai/kirili4ik/icae-swebench-finetune}}, and model checkpoints\footnote{\url{https://huggingface.co/Kirili4ik/icae}}.

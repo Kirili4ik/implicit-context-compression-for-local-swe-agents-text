@@ -7,7 +7,7 @@
 This chapter presents the comprehensive methodology for developing and evaluating an In-Context Autoencoder (ICAE) designed for agentic context management.
 The chapter begins by providing a high-level overview of the entire training pipeline, illustrating how our proposed model and its variants are derived for comparative analysis.
 Following this, we dive into the core architectural principles of applying the ICAE framework to compress the conversational history of agentic trajectories.
-The subsequent sections detail the two-stage training process, which starts with a self-supervised pretraining phase on a large-scale text corpus to teach the model effective compression, and transitions to a fine-tuning phase on a specialized dataset of agentic trajectories to adapt the model for the downstream task.
+The subsequent sections detail the two-stage training process, which begins with a self-supervised pretraining phase on a large-scale text corpus to teach the model effective compression, followed by a fine-tuning phase on a specialized dataset of agentic trajectories to adapt the model for the downstream task.
 
 \label{ex:trajectory-compression}
 As an example, we would use the following trajectory (you can also see Figure~\ref{fig:icae-agent-training-overview} for a basic visual representation of the trajectory):
@@ -27,28 +27,28 @@ As an example, we would use the following trajectory (you can also see Figure~\r
 \end{enumerate}
 
 In the above example, the encoder is applied twice (to compress observations 2 and 3, highlighted in yellow), while the decoder generates five actions.
-The model then is able to predict actions from a history where long observations have been replaced by their compact memory representations.
-For more details and rationale on this see Section~\ref{sec:fine-tuning}.
+The model is then able to predict actions from a history where long observations have been replaced by their compact memory representations.
+For more details and rationale on this, see Section~\ref{sec:fine-tuning}.
 
 \section{Overview of the Training Process and Model Variants}
 \label{sec:training-process-overview}
 \begin{figure}[hbt]
   \centering
   \includegraphics[width=\textwidth]{graphs/overall-names.pdf}
-  \caption{Full training process overview, illustrating the derivation of model variants. The diagram shows two parallel training paths starting from the pretrained \texttt{Qwen3-8B} baseline. The first path (top) shows the ICAE approach: the baseline initializes both encoder and decoder, then pretraining (PT) on SlimPajama-6B produces \texttt{ICAE-PT}, followed by fine-tuning (FT) on agentic trajectories to yield \texttt{ICAE-PT+FT}. Only encoder LoRA weights are trained while the decoder remains frozen. The second path (bottom) shows direct LoRA fine-tuning of the baseline on agentic trajectories, producing \texttt{Baseline-FT}. Thus, we receieve all 4 main model variants for comparison.}
+  \caption{Full training process overview, illustrating the derivation of model variants. The diagram shows two parallel training paths starting from the pretrained \texttt{Qwen3-8B} baseline. The first path (top) shows the ICAE approach: the baseline initializes both encoder and decoder, then pretraining (PT) on SlimPajama-6B produces \texttt{ICAE-PT}, followed by fine-tuning (FT) on agentic trajectories to yield \texttt{ICAE-PT+FT}. Only encoder LoRA weights are trained while the decoder remains frozen. The second path (bottom) shows direct LoRA fine-tuning of the baseline on agentic trajectories, producing \texttt{Baseline+FT}. Thus, we receive all four main model variants for comparison.}
   \label{fig:training-process-overview}
 \end{figure}
 
-Figure~\ref{fig:training-process-overview} provides a comprehensive overview of the full training and evaluation pipeline, illustrating how each of our model variants is derived.
+Figure~\ref{fig:training-process-overview} provides a comprehensive overview of the complete training and evaluation pipeline, illustrating how each of our model variants is derived.
 
 The starting point for all variants is a standard, pretrained \texttt{Qwen3-8B} model~\cite{yang2025qwen3}, which we refer to as \texttt{Baseline}. This is a ready-to-use model, not one with random weights.
-So, basically, the model in \texttt{Baseline} is already a pretrained model, but we stick with the naming of the process in \textcite{ge2023context} for consistency and name the 2 stages as Pretraining (PT) and Fine-Tuning (FT).
+Note that the model in \texttt{Baseline} is already a pretrained model, but we stick with the naming of the process in \textcite{ge2023context} for consistency and name the two stages as Pretraining (PT) and Fine-Tuning (FT).
 
-There are two parallel training paths. The first path is for our ICAE model. \texttt{Baseline} model is used to initialize the ICAE encoder and decoder. In the Pretraining (PT) stage, we train the LoRA weights of the encoder on the SlimPajama-6B dataset~\cite{weber2024redpajama}, resulting in \texttt{ICAE-PT} model. This model is then fine-tuned on the agentic trajectories dataset, yielding the final \texttt{ICAE-PT+FT} model. Crucially, for both ICAE training stages, only the encoder's LoRA weights are updated, while the base Qwen3 model used as the decoder remains frozen.
+There are two parallel training paths. The first path is for our ICAE model. The \texttt{Baseline} model is used to initialize the ICAE encoder and decoder. In the Pretraining (PT) stage, we train the LoRA weights of the encoder on the SlimPajama-6B dataset~\cite{weber2024redpajama}, resulting in \texttt{ICAE-PT} model. This model is then fine-tuned on the agentic trajectories dataset, yielding the final \texttt{ICAE-PT+FT} model. Crucially, for both ICAE training stages, only the encoder's LoRA weights are updated, while the base Qwen3 model used as the decoder remains frozen.
 
-The second path is for a comparative baseline. The original \texttt{Baseline} Qwen3 model is directly fine-tuned with LoRA on the agentic trajectories dataset. This produces \texttt{Baseline-FT} model. This allows us to compare our two-stage ICAE approach against a standard parameter-efficient fine-tuning of a base language model on the target task.
+The second path is for a comparative baseline. The original \texttt{Baseline} Qwen3 model is directly fine-tuned with LoRA on the agentic trajectories dataset. This produces the \texttt{Baseline+FT} model. This allows us to compare our two-stage ICAE approach against a standard parameter-efficient fine-tuning of a base language model on the target task.
 
-In addition to the process overview in Figure~\ref{fig:training-process-overview}, Table~\ref{tab:model_variants_overview} provides a clear mapping of our four main model variant names to their respective encoder and decoder configurations. The encoder is responsible for compressing, while the decoder generates the text.
+In addition to the process overview in Figure~\ref{fig:training-process-overview}, Table~\ref{tab:model_variants_overview} provides a precise mapping of our four main model variant names to their respective encoder and decoder configurations. The encoder is responsible for compressing, while the decoder generates the text.
 A dash (—) in the 'Encoder' column signifies that no compression module is used, and the decoder processes the uncompressed context directly. For a complete list of all experimental configurations and their results, please refer to Table~\ref{tab:qwen_icae_variants_absolute} in Chapter~\ref{cha:experiments}.
 
 \begin{table}[h]
@@ -63,7 +63,7 @@ A dash (—) in the 'Encoder' column signifies that no compression module is use
       \multicolumn{3}{|l|}{\hspace{1em}\textit{Baselines}} \\
       \hline
       \texttt{Baseline}                  & —                         & Qwen   \\
-      \texttt{Baseline-FT}               & —                         & Qwen (LoRA-finetuned)   \\
+      \texttt{Baseline+FT}               & —                         & Qwen (LoRA-finetuned)   \\
       \hline
       \multicolumn{3}{|l|}{\hspace{1em}\textit{ICAE Compression}} \\
       \hline
@@ -73,8 +73,8 @@ A dash (—) in the 'Encoder' column signifies that no compression module is use
   \end{tabular}
   \caption{
     This table maps the names of our four main model variants to their specific encoder and decoder configurations, as depicted in Figure~\ref{fig:training-process-overview}. 
-    Encoder is responsible for compressing the context, while the decoder generates the text.
-    A dash (—) in the "Encoder" column signifies that no compression module is used. Qwen stands for Qwen3-8B model. Pretraining and fine-tuning stages of the training process are described in Section~\ref{sec:pretraining} and Section~\ref{sec:fine-tuning} respectively.
+    The encoder is responsible for compressing the context, while the decoder generates the text.
+    A dash (—) in the "Encoder" column signifies that no compression module is used. Qwen stands for Qwen3-8B model. Pretraining and fine-tuning stages of the training process are described in Section~\ref{sec:pretraining} and Section~\ref{sec:fine-tuning}, respectively.
     A more comprehensive comparison including other variants is presented in Chapter~\ref{cha:experiments}.
   }
   \label{tab:model_variants_overview}
@@ -94,7 +94,7 @@ The encoder ingests the full context and produces memory tokens.
 The frozen decoder then receives these tokens and a prompt to generate a continuation.
 During pretraining, the encoder is optimized to enable the decoder to reconstruct the original text.
 During fine-tuning, the objective shifts to solving a downstream task (e.g., generating a tool call) using the compressed representation.
-Parameter-efficient methods like LoRA \cite{hu2022lora} are used to adapt the encoder while keeping the base model's capabilities intact.
+Parameter-efficient methods, such as LoRA \cite{hu2022lora}, are used to adapt the encoder while preserving the base model's capabilities intact.
 
 \begin{figure}[hbt]
   \centering
@@ -106,10 +106,11 @@ Parameter-efficient methods like LoRA \cite{hu2022lora} are used to adapt the en
   }
   \label{fig:icae}
 \end{figure}
-
 Our main contribution is the adaptation and application of this framework to an agentic setting.
 In this scenario, an agent interacts with an environment over multiple turns, generating a trajectory of actions and observations.
-Our method uses ICAE to compress long observations, keeping the overall context manageable without losing critical information.
+Our method utilizes ICAE to compress long observations, keeping the overall context manageable without losing critical information.
+
+Beyond the basic encoder-decoder structure, the effectiveness of ICAE in our case depends critically on positional information.
 Further enhancing this process, we incorporate insights on the strategic placement of compressed representations, as detailed by \textcite{zhao2024position}.
 The effectiveness of context compression is highly dependent on the layout of position identifiers (IDs), particularly in models employing relative position embeddings like RoPE, which we discussed in Chapter~\ref{cha:background}.
 These mechanisms create a local inductive bias where tokens with smaller positional distances exhibit stronger attention affinity.
@@ -190,9 +191,9 @@ During training, we optimize over single-step transitions.
 At a timestep \(k\), the encoder compresses the observation \(o_{k-1}\).
 The decoder then generates action \(a_k\) from the compressed history.
 The loss from \(a_k\) is backpropagated to update the encoder's LoRA weights.
-Importantly, backpropagation is performed only through a single turn — we do not backpropagate through the entire trajectory history as this would not really feasible due to the memory constraints.
+Importantly, backpropagation is performed only through a single turn — we do not backpropagate through the entire trajectory history as this would not be feasible due to the memory constraints.
 Crucially, whenever an observation exceeds a predefined threshold (e.g., 256 tokens), the encoder compresses it into a fixed set of memory tokens.
 This ensures the model never processes the full raw text of long observations, allowing it to handle arbitrarily long trajectories without exceeding context limits.
 
 \subsection{Disabling "Thinking" for Tool Use}
-Finally, a specific configuration choice for our agentic experiments involves the model's reasoning mode. The Qwen3 family includes a "thinking" feature designed for complex chain-of-thought reasoning. However, for our tool-use objectives, we explicitly disable this feature to prioritize direct action generation and to simplify the context management pipeline. This decision is analyzed further in the ablation study in Appendix~\ref{sec:disabling_thinking}.
+Finally, a specific configuration choice for our agentic experiments involves the model's reasoning mode. The Qwen3 family includes a "thinking" feature designed for complex chain-of-thought reasoning. However, for our tool-use objectives, we explicitly turn off this feature to prioritize direct action generation and to simplify the context management pipeline. This decision is analyzed further in the ablation study in Appendix~\ref{sec:disabling_thinking}.

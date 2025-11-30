@@ -8,7 +8,7 @@
 \section{On the Use of AI}
 
 I \textbf{have} used generative AI to help me write the text for this work. \cite{comanici2025gemini}\\
-I \textbf{have} used generative AIto help me write the code for the experiments. \cite{anthropic2025claude}\\
+I \textbf{have} used generative AI to help me write the code for the experiments. \cite{anthropic2025claude}\\
 I \textbf{have not} used AI in order to create new experiments, nor for any goals, research questions, hypotheses and other types of research-related work.
 
 \section{SWE-smith First User Message}
@@ -90,12 +90,12 @@ The following prompt is from the SWE-smith paper \cite{yang2025swe}.
     Parameters:
       (1) command (string, required): The commands to run. Allowed options are: `view`, `create`, `str_replace`, `insert`, `undo_edit`.
     Allowed values: [`view`, `create`, `str_replace`, `insert`, `undo_edit`]
-      (2) path (string, required): Absolute path to file or directory, e.g. `/repo/file.py` or `/repo`.
+      (2) path (string, required): Absolute path to file or directory, e.g., `/repo/file.py` or `/repo`.
       (3) file_text (string, optional): Required parameter of `create` command, with the content of the file to be created.
       (4) old_str (string, optional): Required parameter of `str_replace` command containing the string in `path` to replace.
       (5) new_str (string, optional): Optional parameter of `str_replace` command containing the new string (if not given, no string will be added). Required parameter of `insert` command containing the string to insert.
       (6) insert_line (integer, optional): Required parameter of `insert` command. The `new_str` will be inserted AFTER the line `insert_line` of `path`.
-      (7) view_range (array, optional): Optional parameter of `view` command when `path` points to a file. If none is given, the full file is shown. If provided, the file will be shown in the indicated line number range, e.g. [11, 12] will show lines 11 and 12. Indexing at 1 to start. Setting [start_line, -1] shows all lines from start_line to the end of the file.
+      (7) view_range (array, optional): Optional parameter of `view` command when `path` points to a file. If none is given, the full file is shown. If provided, the file will be shown in the indicated line number range, e.g., [11, 12] will show lines 11 and 12. Indexing at 1 to start. Setting [start_line, -1] shows all lines from start_line to the end of the file.
     ---- END FUNCTION #3 ----
     
     
@@ -188,7 +188,7 @@ This proof-of-concept example demonstrates that the ICAE framework can successfu
 \label{sec:disabling_thinking}
 
 The Qwen3 model family provides a mechanism to toggle its "thinking" mode, which is designed for complex reasoning.
-For our agentic experiments, where a tool-call generation is prioritized, we decided to disable this feature not to overcomplicate the pipeline.
+For our agentic experiments, where a tool call generation is prioritized, we decided to disable this feature not to overcomplicate the pipeline.
 The official recommendation for disabling thinking involves prefixing the generation prompt with a specific token sequence, \texttt{<think>\textbackslash n\textbackslash n</think>}, which signals to the model that the "thinking" step has already occurred and is empty.
 Crucially, for multi-turn interactions, this prefix should be ephemeral: it is added for generation and then omitted from the conversation history to prevent it from influencing subsequent turns.
 

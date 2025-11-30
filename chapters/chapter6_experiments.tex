@@ -7,8 +7,8 @@
 This chapter documents the experimental results.
 First, training-free and projection-based compression methods are evaluated.
 Next, the pretraining of the In-Context Autoencoder (ICAE) is described alongside results on general text reconstruction.
-Subsequently, fine-tuning performance is assessed on the SQuAD question answering dataset and the RepoQA code reconstruction benchmark.
-The chapter concludes with an evaluation on the SWE-bench Verified dataset within an agentic software engineering context.
+Subsequently, fine-tuning performance is assessed on SQuAD and later on RepoQA.
+The chapter concludes with an evaluation on the SWE-bench Verified dataset within an agentic software engineering setting.
 
 %
 \section{Feasibility of Training-Free Context Condensation}
@@ -74,7 +74,7 @@ The results establish that replacing discrete tokens with untrained condensed mi
 
 \section{Learning Projections for Context Condensation}
 
-We as well investigate whether a trained, low-capacity projection module could learn to compress adjacent embedding vectors while preserving task-relevant information.
+We also investigate whether a trained, low-capacity projection module could learn to compress adjacent embedding vectors while preserving task-relevant information.
 We explore several architectural variants to map a pair of concatenated hidden vectors $[e_{2t-1}; e_{2t}]$ from $\mathbb{R}^{2d}$ to a single vector in $\mathbb{R}^{d}$.
 These variants included a simple linear projector, a shallow non-linear MLP (one to two layers with GELU activation), and a full BERT encoder \cite{devlin2019bert} to provide a higher-capacity compression mechanism.
 
@@ -93,7 +93,7 @@ These variants included a simple linear projector, a shallow non-linear MLP (one
         \caption{F1 score on validation set}
         \label{fig:squad_f1_score}
     \end{subfigure}
-    \caption{SQuAD validation metrics for projection-based compression. The left plot shows the validation loss, which flattens immediately despite the training loss decreasing. The right plot displays F1 scores that remain far below the baseline. We explored numerous variants including different learning rates, BERT encoder, varying compression ratios, and extended training durations. While all configurations successfully overfit the training data, none generalized to the validation set, demonstrating that simple projection methods fail to preserve task-relevant information.}
+    \caption{SQuAD validation metrics for projection-based compression. The left plot shows the validation loss, which flattens immediately despite the training loss decreasing. The right plot displays F1 scores that remain far below the baseline. We explored numerous variants, including different learning rates, BERT encoder, varying compression ratios, and extended training durations. While all configurations successfully overfit the training data, none generalized to the validation set, demonstrating that simple projection methods fail to preserve task-relevant information.}
     \label{fig:squad_metrics}
 \end{figure}
 
@@ -124,11 +124,11 @@ The pretraining stage was performed on the dataset SlimPajama-6B \cite{weber2024
 Following the original ICAE methodology, the training objective was a 50/50 mix of an autoencoding (AE) task, signaled by a special \texttt{<AE>} token, and a language modeling (LM) task, which used no special token.
 The AE process is conceptually illustrated in Figure~\ref{fig:icae}.
 
-On Figure~\ref{fig:loss_final} you can notice the sudden drop of the loss.
+In Figure~\ref{fig:loss_final} you can notice the sudden drop of the loss.
 This is a phenomenon found in \cite{zhao2024position}.
 It appears due to the modification of positional encodings for the memory tokens.
 We see the effect being the same as described by the authors.
-In our experiments, it only appears if we apply the Position ID manipulation.
+In our experiments, it only appears if we apply the Position ID manipulation (see )
 
 
 \begin{figure}[hbt]
@@ -144,7 +144,7 @@ In our experiments, it only appears if we apply the Position ID manipulation.
       \caption{}
       \label{fig:bleu_final}
   \end{subfigure}
-  \caption{Pre-training evaluation metrics across different model configurations. The left plot displays the validation loss, showing a characteristic sharp drop attributed to the positional encoding adjustments for memory tokens. The right plot presents the BLEU scores for text reconstruction, which improve as training progresses. These metrics together illustrate the effectiveness of the pre-training phase.
+  \caption{Pretraining evaluation metrics across different model configurations. The left plot displays the validation loss, showing a characteristic sharp drop attributed to the positional encoding adjustments for memory tokens. The right plot presents the BLEU scores for text reconstruction, which improve as training progresses. These metrics together illustrate the effectiveness of the pretraining phase.
   }
   \label{fig:pretraining-metrics-combined}
 \end{figure}
@@ -173,7 +173,7 @@ In our experiments, it only appears if we apply the Position ID manipulation.
         \bottomrule
     \end{tabular}
     \caption{Autoencoding reconstruction BLEU scores on SQuAD contexts. This table compares the reconstruction quality for models pretrained (PT) on different data subsets (10M vs. 1B tokens of SlimPajama-6B) at various checkpoints.
-    The checkpoint numbers (9k, 12k, 18k) refer to the number of training steps during pre-training. The run marked (main) is used for all the fine-tunings later. Note that here PT is done via LoRA as well.
+    The checkpoint numbers (9k, 12k, 18k) refer to the number of training steps during pretraining. The run marked (main) is used for all the fine-tunings later. Note that here, pretraining is done via LoRA as well.
     }
     \label{tab:ae_bleu_squad_ours}
 \end{table}
@@ -184,12 +184,13 @@ We report BLEU on SQuAD contexts tested on 100 samples.
 The checkpoint using 1B tokens for 12k steps is selected as the main run and used for fine-tuning.
 
 We have also experimented with compressing 16 tokens into 4 on average instead of 1024 into 256.
-It which achieved a higher BLEU (\(\approx 0.982\)). 
+This achieved a higher BLEU (\(\approx 0.982\)). 
 Notably, none of the 100-sample AE scores reach \(\approx 0.99\).
-This may be acceptable for general text but could be problematic for code, where near-lossless reconstruction is likely a prerequisite for downstream stability.
+This may be acceptable for general text, but could be problematic for code, where near-lossless reconstruction is likely a prerequisite for downstream stability.
+
 
 \medskip
-Below we show a short example where we attempted to reconstruct the README.md file of the SWE-agent project.
+Below, we show a short example where we attempted to reconstruct the README.md file of the SWE-agent project.
 The difference is highlighted in yellow.
 \begin{tcolorbox}[title={Autoencoding Reconstruction Failure Example},
     colback=white, colframe=black, fonttitle=\bfseries,
@@ -213,14 +214,13 @@ Reconstructed:
 \noindent Even in the very start of the text, the difference is noticeable: the hallucinated \texttt{/agent/} path segment in the URL, which could break navigation in a coding task.
 
 In line with internal feedback, these AE findings suggest that the current pretrain/fine-tuning mixes undertrain the model on code: AE BLEU for code should approach text-level (near 1.0) to avoid even small inaccuracies (e.g., link/variable name substitutions).
-Additionally, qualitative analysis of reconstruction errors, as illustrated in the example above, provides valuable insights into the types of failures that occur.
 
 \section{ICAE Fine-Tuning and Results on Question Answering}
 
 We conduct fine-tuning experiments on the Stanford Question Answering Dataset (SQuAD) \cite{rajpurkar2016squad}.
 The rationale for choosing SQuAD over the PWC dataset used in the original ICAE work is detailed in Chapter~\ref{cha:evaluation}.
 
-During fine-tuning on SQuAD, the encoder compresses the context while the question remains uncompressed (text-compressed-text format).
+During fine-tuning on SQuAD, the encoder compresses the context while the question remains uncompressed ("compressed-text -> uncompressed-question" format).
 The decoder generates answers from this mixed representation.
 We use identical LoRA hyperparameters as in \cite{ge2023context}.
 
@@ -249,19 +249,19 @@ Consequently, the compression ratio for ICAE variants averages approximately $1.
         \texttt{ICAE-PT+FT} (SQuAD, ours)       & ×$1.7\pm0.7$ & \textbf{73} \\
         \bottomrule
     \end{tabular}
-    \caption{This table compares the performance of different models with and without compression. Mistral-7B is used as a base model for this experiments. The model names are explained in Section~\ref{sec:training-process-overview}. We also compare our Fine-Tuned model on SQuAD to the ICAE authors Fine-Tuned model on PWC \cite{ge2023context}.}
+    \caption{This table compares the performance of different models with and without compression. Mistral-7B is used as a base model for these experiments. The model names are explained in Section~\ref{sec:training-process-overview}. We also compare our Fine-Tuned model on SQuAD to the ICAE authors' Fine-Tuned model on PWC \cite{ge2023context}.}
     \label{tab:icae_squad}
 \end{table}
 The results in Table~\ref{tab:icae_squad}, using Mistral-7B, show that our SQuAD-finetuned ICAE model achieves a high F1 score of 73.
 This surpasses not only the uncompressed baseline but also the uncompressed, LoRA fine-tuned baseline (73 vs. 65).
-This outcome is notable, as compression typically implies information loss;
-here, it might be that the compression provides a beneficial inductive bias, helping the model focus on salient information.
+This outcome is notable, as compression typically implies information loss.
+Here, it might be that the compression provides a beneficial inductive bias, helping the model focus on salient information.
 However, the ICAE model fine-tuned on the PWC dataset used in the original ICAE work \cite{ge2023context} fails to generalize, underscoring the importance of in-domain fine-tuning.
 
 For consistency across datasets, we also measure BLEU scores, as detailed in Section~\ref{sec:quality_metrics}.
 Figure~\ref{fig:bleu_squad} presents these results for the Qwen3-8B model.
 Here, the performance ordering differs: the LoRA fine-tuned baseline surpasses the fine-tuned ICAE model.
-This is followed by the pretrained-only ICAE model, with the base model performing lowest.
+This is followed by the pretrained-only ICAE model, with the base model performing the lowest.
 This suggests that while pretraining may temporarily diminish some of the model's capabilities, task-specific fine-tuning helps recover and enhance performance over the baseline on QA tasks.
 
 \begin{figure}[hbt]
@@ -290,19 +290,6 @@ This experiment serves as a test of the encoder's ability to preserve the high-f
 High-fidelity reconstruction is particularly critical for code, where even minor character-level differences (e.g., incorrect URLs, missing special characters) can lead to functional failures, as illustrated in Example~\ref{ex:ae-readme-recon}.
 As detailed in Section~\ref{sec:datasets}, we use the "Searching Needle Function" task, which requires the model to reconstruct a specific target function (the "needle") from a long code context (the "haystack") based on a natural language description.
 
-We fine-tuned the LoRA weights of the encoder on this task, optimizing for token-level cross-entropy loss between the generated and ground-truth functions, exactly like we did for SQuAD.
-The results of this experiment are summarized in Figure~\ref{fig:repoqa_metrics}.
-Figure~\ref{fig:repoqa_val_loss} shows the validation loss during fine-tuning.
-The loss curve displays a consistent downward trend, confirming that the model effectively learns to reconstruct the target functions from the compressed representations.
-We also see that Basline-LoRA instantly achieves better performance in terms of loss, which is expected.
-
-Figure~\ref{fig:bleu_repoqa} presents the BLEU scores, which exhibit a performance ordering consistent with the trends observed in the SQuAD evaluation.
-The LoRA fine-tuned baseline without compression achieves the highest reconstruction quality, followed by the ICAE model with both pretraining and fine-tuning (\texttt{ICAE-PT+FT}).
-The uncompressed baseline without fine-tuning demonstrates intermediate performance, while the ICAE model with only pretraining (\texttt{ICAE-PT}) yields the lowest scores.
-This hierarchy reinforces the pattern established in our earlier experiments (for all datasets combined see Figure~\ref{fig:bleu_all_datasets}) and confirms that task-specific fine-tuning is essential for the compressed representations to approach the performance of uncompressed models.
-
-In summary, the evaluation on RepoQA indicates that the ICAE framework is capable of compressing and reconstructing complex source code with a high degree of fidelity.
-
 \begin{figure}[hbt]
     \centering
     \begin{subfigure}[b]{0.43\textwidth}
@@ -323,6 +310,19 @@ In summary, the evaluation on RepoQA indicates that the ICAE framework is capabl
     \label{fig:repoqa_metrics}
 \end{figure}
 
+We fine-tuned the LoRA weights of the encoder on this task, optimizing for token-level cross-entropy loss between the generated and ground-truth functions, exactly like we did for SQuAD.
+The results of this experiment are summarized in Figure~\ref{fig:repoqa_metrics}.
+Figure~\ref{fig:repoqa_val_loss} shows the validation loss during fine-tuning.
+The loss curve displays a consistent downward trend, confirming that the model effectively learns to reconstruct the target functions from the compressed representations.
+We also see that Baseline-LoRA instantly achieves better performance in terms of loss, which is expected.
+
+Figure~\ref{fig:bleu_repoqa} presents the BLEU scores, which exhibit a performance ordering consistent with the trends observed in the SQuAD evaluation.
+The LoRA fine-tuned baseline without compression achieves the highest reconstruction quality, followed by the ICAE model with both pretraining and fine-tuning (\texttt{ICAE-PT+FT}).
+The uncompressed baseline without fine-tuning demonstrates intermediate performance, while the ICAE model with only pretraining (\texttt{ICAE-PT}) yields the lowest scores.
+This hierarchy reinforces the pattern established in our earlier experiments (for all datasets combined, see Figure~\ref{fig:bleu_all_datasets}) and confirms that task-specific fine-tuning is essential for the compressed representations to approach the performance of uncompressed models.
+
+In summary, the evaluation on RepoQA indicates that the ICAE framework is capable of compressing and reconstructing complex source code with a high degree of fidelity.
+
 \section{ICAE Fine-Tuning and Results on SWE-bench Verified}
 
 This section describes the main experiment of the thesis and discusses its results.
@@ -332,8 +332,8 @@ Here, we evaluate the performance of this method on the SWE-bench Verified datas
 
 \subsection{Experimental Setup}
 We reimplemented the ICAE framework from scratch, building upon the original architecture \cite{ge2023context} with several modifications for improved efficiency and reproducibility.
-Our implementation uses the Qwen3 model family (specificaly Qwen3-8B) as the base LLM, with LoRA adaptation applied to the attention matrices (q\_proj and v\_proj) using a rank of 128 (see all hyperparameters in Appendix~\ref{app:training_details}).
-To reduce complexity, we explicitly disable the model's "thinking" mode, as detailed in Appendix~\ref{sec:disabling_thinking}.
+Our implementation uses the Qwen3 model family (specifically Qwen3-8B) as the base LLM, with LoRA adaptation applied to the attention matrices (q\_proj and v\_proj) using a rank of 128 (see all hyperparameters in Appendix~\ref{app:training_details}).
+To reduce complexity, we explicitly turn off the model's "thinking" mode, as detailed in Appendix~\ref{sec:disabling_thinking}.
 The pretraining and fine-tuning processes are described in more detail in Chapter~\ref{cha:methodology}.
 
 
@@ -377,7 +377,7 @@ For more details on how we trained the model variants, see Figure~\ref{fig:train
     This table compares different model configurations on resolve rate and inference time.
     "Qwen" refers to the Qwen3-8B model without any fine-tuning.
     "del long/all obs-s" stands for deleting long (>256 tokens) or all observations during the inference process -- these are the naive baselines.
-    PT stands for pretrained and FT stands for fine-tuned.
+    PT stands for pretrained, and FT stands for fine-tuned.
     The fully fine-tuned Qwen model achieves the highest number of resolved issues, setting the upper bound for performance.
     While ICAE compression reduces inference time, it significantly lowers the task resolution rate compared to the uncompressed baseline.}
     \label{tab:qwen_icae_variants_absolute}
@@ -390,11 +390,16 @@ While they significantly reduce generation time by shortening the context, their
 
 Next, we evaluate three uncompressed baseline models to set performance targets.
 The fully fine-tuned Qwen3-8B model achieves the highest performance, resolving 86 issues and setting the upper bound for this architecture.
-The LoRA fine-tuned variant ("Baseline+FT") provides a more parameter-efficient alternative, resolving 10 issues.
+The LoRA fine-tuned variant ("\texttt{Baseline+FT}") provides a more parameter-efficient alternative, resolving 10 issues.
 The base Qwen3-8B model without any fine-tuning ("\texttt{Baseline}") serves as the most direct point of comparison for our ICAE models, as they use this same frozen model as the decoder.
 It resolves 19.4 $\pm$ 6.5 issues, establishing a solid baseline for an off-the-shelf model on this task.
 The uncertainty ($\pm$ 6.5) represents the standard deviation across multiple evaluation runs (five runs for each model), quantifying the variability in the model's performance.
 
+The core of our experiment tests ICAE with an encoder fine-tuned on SWE-bench trajectories.
+When pairing the ICAE-FT encoder with the base Qwen decoder, we observe a modest 10\% reduction in generation time.
+However, this configuration sees a significant drop in task performance, resolving only 7.8 issues compared to the baseline's 19.4.
+A similar trend holds when using a LoRA-FT decoder, where the resolved rate plummets.
+This suggests that while compression is time-efficient, it loses critical information necessary for end-to-end task success in this agentic setting.
 
 
 \begin{figure}[hbt]
@@ -415,12 +420,6 @@ The uncertainty ($\pm$ 6.5) represents the standard deviation across multiple ev
 \end{figure}
 
 
-The core of our experiment tests ICAE with an encoder fine-tuned on SWE-bench trajectories.
-When pairing the ICAE-FT encoder with the base Qwen decoder, we observe a modest 10\% reduction in generation time.
-However, this configuration sees a significant drop in task performance, resolving only 7.8 issues compared to the baseline's 19.4.
-A similar trend holds when using a LoRA-FT decoder, where the resolved rate plummets.
-This suggests that while compression is time-efficient, it loses critical information necessary for end-to-end task success in this agentic setting.
-
 The primary negative finding of this study is the substantial decrease in task resolution performance when using ICAE compression.
 As shown in Table~\ref{tab:qwen_icae_variants_absolute}, the \texttt{ICAE-PT+FT} configuration resolved only 7.8 $\pm$ 2.59 issues, a marked decline from the 19.4 $\pm$ 6.5 issues resolved by the uncompressed baseline.
 A two-sample Welch t-test on the number of resolved issues across five runs confirms this difference: the baseline achieved a mean of 19.4 resolved issues ($s = 6.54$), while the ICAE model achieved 7.8 ($s = 2.59$), yielding $t(\text{DoF} = 5.22) = 3.69$, $p = 0.013 < \alpha = 0.05$.
@@ -433,31 +432,22 @@ We discuss why this might be the case in more detail in Section~\ref{cha:discuss
 
 \paragraph{Additional experimental configurations.}
 We also investigated additional experimental configurations.
-We hypothesized that training both the encoder and the decoder simultaneously would improve performance since the amount of the trained parameters would increase in that case.
+We hypothesized that training both the encoder and the decoder simultaneously would improve performance since the number of trained parameters would increase in that case.
 In one variant, the LoRA-adapted decoder was unfrozen during the fine-tuning stage, allowing for simultaneous training of both the ICAE encoder and the decoder.
-As reported in Table~\ref{tab:qwen_icae_variants_absolute}, this approach (\texttt{ICAE-PT+FT} encoder with \texttt{Baseline+LoRA-FT} decoder) did not yield a notable performance improvement relative to the uncompressed LoRA-finetuned baseline.
+As reported in Table~\ref{tab:qwen_icae_variants_absolute}, this approach (LoRA-PT \& LoRA-FT encoder with LoRA+FT decoder) did not yield a notable performance improvement relative to the uncompressed LoRA-finetuned baseline.
 
-Furthermore, an interesting observation was made regarding the \texttt{Baseline+LoRA-FT} model.
+Furthermore, an interesting observation was made regarding the \texttt{Baseline+FT} model.
 Within the online agentic setting of SWE-bench, this configuration substantially underperformed the non-finetuned \texttt{Baseline} model.
 This outcome contrasts with its performance on offline benchmarks such as RepoQA, where LoRA fine-tuning resulted in a significant performance gain (Figure~\ref{fig:bleu_repoqa}).
 This signals that probably the efficacy of LoRA fine-tuning is task-dependent and its benefits do not necessarily generalize from static benchmarks to dynamic, interactive settings.
-For more details, see Chapter~\ref{cha:discussion}.
-
-\paragraph{The LoRA Bottleneck in Agentic Fine-tuning.}
-A critical finding from Table~\ref{tab:qwen_icae_variants_absolute} is that the \texttt{Baseline+LoRA-FT} model (10 solved) significantly underperforms the off-the-shelf \texttt{Baseline} (19.4 solved).
-This suggests that the performance degradation observed in our ICAE models may not be solely due to compression.
-Instead, it may be attributable to the limitations of LoRA fine-tuning for agentic tasks.
-If the standard parameter-efficient fine-tuning method itself harms the agent's ability to reason and plan compared to the base model, then using it to train the compression encoder introduces an additional bottleneck.
-This points to a need for full-parameter fine-tuning to truly unlock agentic capabilities.
-However, such experiments were beyond our computational constraints.
-
+For more details, see Chapter~\ref{cha:discussion} (\Cref{sec:lora_bottleneck}).
 
 
 \subsection{Impact on Inference Efficiency}
 \label{sec:rq1_efficiency}
 
 In this section, we address \hyperref[rq:1]{RQ1}, investigating how implicit context condensation influences the efficiency of LLM-based agents.
-We measure efficiency in terms of two key metrics: trajectory length (the number of interaction steps possible within the context window) and inference time (the time of generating a tool call).
+We measure efficiency in terms of two key metrics: trajectory length (the number of interaction steps within the context window) and inference time (the average time of generating a tool call).
 
 \paragraph{Trajectory Length.}
 Firstly, we analyze the number of interaction steps each agent could perform before termination. For this analysis, the default 75-turn hard cap was disabled, and termination occurred when the context window limit of 32,768 tokens was reached.
@@ -475,13 +465,13 @@ Although both models exhibit outliers representing exceptionally long trajectori
 \begin{figure}[hbt]
     \centering
     \includegraphics[width=0.65\textwidth]{graphs/boxplot-stepcount.pdf}
-    \caption{Comparison of trajectory lengths at termination. This box plot shows that the ICAE-based agent (right) executes a significantly higher number of steps before reaching the context limit, compared to the uncompressed baseline agent (left). The context window limit is 32,768 tokens for this experiment, while there is no limit on the maximum amount of steps the agent can take.}
+    \caption{Comparison of trajectory lengths at termination. This box plot shows that the ICAE-based agent (right) executes a significantly higher number of steps before reaching the context limit, compared to the uncompressed baseline agent (left). The context window limit is 32,768 tokens for this experiment, while there is no limit on the maximum number of steps the agent can take.}
     \label{fig:boxplot-stepcount}
 \end{figure}
 
 \paragraph{Inference Time.}
 Secondly, we analyze the computational efficiency of the ICAE compression approach in terms of generation time during inference.
-The quantitative results, presented in Table~\ref{tab:qwen_icae_variants_absolute}, indicate a measurable reduction in the time required for tool-call generation.
+The quantitative results, presented in Table~\ref{tab:qwen_icae_variants_absolute}, indicate a measurable reduction in the time required for tool call generation.
 Specifically, the compressed agent achieved a mean generation time of 1.12 seconds per tool call, representing an approximate 10\% reduction compared to the uncompressed baseline's mean of 1.23 seconds.
 This total time for the compressed agent is composed of two distinct operational phases: the compression of the observation, which averages 0.31 seconds, and the subsequent generation of the next tool call, which averages 0.81 seconds.
 The observed reduction in generation time is a direct consequence of the decreased context size processed by the decoder following the compression step.
@@ -512,7 +502,5 @@ Our findings indicate that the strong performance of ICAE on standard NLP benchm
 While offline metrics suggested promise, the practical application revealed a significant performance degradation.
 As illustrated in Figure~\ref{fig:boxplot}, the \texttt{ICAE-PT+FT} model is statistically significantly outperformed by the uncompressed baseline model in terms of successfully resolved issues.
 This outcome highlights the gap between single-step, static evaluations and the complexities of online, interactive problem-solving.
-
-This trend is also visible in token-level metrics like BLEU.
-Figure~\ref{fig:bleu_all_datasets} shows that for all datasets, the fine-tuned ICAE model (\texttt{ICAE-PT+FT}) achieves a higher BLEU score than the uncompressed baseline.
+Interestingly, token-level metrics paint a different picture: Figure~\ref{fig:bleu_all_datasets} shows that the fine-tuned ICAE model (\texttt{ICAE-PT+FT}) achieves a higher BLEU score than the uncompressed baseline across all datasets.
 This suggests that while the model learns to mimic the expert's next action well on a static dataset, this capability does not translate to effective problem-solving when the agent must navigate the consequences of its own actions in a live environment.

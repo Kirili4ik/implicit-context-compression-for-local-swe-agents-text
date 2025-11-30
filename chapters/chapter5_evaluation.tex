@@ -10,25 +10,25 @@ The subsequent section outlines the quality metrics used for evaluation, disting
 
 \subsection{RedPajama}
 To train the In-Context Autoencoder (ICAE) during the pretraining stage, we utilize a subset of the \textit{RedPajama} dataset \cite{weber2024redpajama}, called \textit{SlimPajama-6B}\footnote{\url{https://huggingface.co/datasets/DKYoon/SlimPajama-6B}}.
-It is a widely used text dataset for pretraining LLMs, consisting of 6 billion tokens (a random 1\% subset of the original 627B tokens).
+It is a widely used text dataset for pretraining LLMs, consisting of 6 billion tokens (a random 1\% subset of the original 627 billion tokens).
 We opted for this dataset because "The Pile" \cite{gao2020pile}, which was used by the ICAE authors \cite{ge2023context}, is no longer available.
 It was deleted due to a DMCA takedown regarding copyrighted material \cite{pile_dmca}.
 \subsection{SQuAD}
 To evaluate the general compression capabilities of our model beyond agentic tasks, we also test it on the \textit{Stanford Question Answering Dataset} (SQuAD)~\cite{rajpurkar2016squad}.
 SQuAD is a reading comprehension benchmark consisting of over 100,000 question-answer pairs sourced from 536 Wikipedia articles.
 The dataset was constructed by asking crowdworkers to pose up to five questions on paragraphs from these articles, where the answer to each question is a direct span of text from the passage.
-For example, given the passage ``In meteorology, precipitation is any product of the condensation of atmospheric water vapor that falls under gravity,'' a corresponding question is ``What causes precipitation to fall?'' with the answer being the single word ``gravity'' extracted from the text.
+For example, given the passage "In meteorology, precipitation is any product of the condensation of atmospheric water vapor that falls under gravity," a corresponding question is "What causes precipitation to fall?" with the answer being the single word "gravity" extracted from the text.
 
 The choice of SQuAD is motivated by its widespread adoption and focus on extractive answers.
-In contrast, the original ICAE work~\cite{ge2023context} used the \textit{PWC dataset} (introduced in the same paper), which is not at all later adopted in the literature and was automatically generated using GPT-4 rather than collected from human annotations. Such synthetic data is often lower in quality compared to human-curated benchmarks.
+In contrast, the original ICAE work~\cite{ge2023context} utilized the \textit{PWC dataset} (introduced in the same paper), which was not at all later adopted in the literature and was automatically generated using GPT-4 rather than collected from human annotations. Such synthetic data is often lower in quality compared to human-curated benchmarks.
 By using SQuAD, we ensure generalizability and facilitate fair comparison with existing approaches.
 
 \subsection{RepoQA}
-To assess how well our compression method preserves high-fidelity information in code (e.g. all the special characters, formatting, etc.), we utilize the \textit{RepoQA} benchmark~\cite{liu2024repoqa}.
+To assess how well our compression method preserves high-fidelity information in code (e.g., all the special characters, formatting, etc.), we utilize the \textit{RepoQA} benchmark~\cite{liu2024repoqa}.
 RepoQA is specifically designed to evaluate a model's ability to remember the entire codebase and its context.
 Unlike traditional code-related tasks that focus on standalone snippets, RepoQA requires a holistic understanding of entire codebases.
 The benchmark's core task, "Searching Needle Function," challenges models to locate a specific function ("needle") within a long, surrounding code context ("haystack") based solely on a natural-language description of its behavior.
-This setup moves beyond simple keyword matching and tests for genuine comprehension of both the code's semantics and the description's intent.
+This setup moves beyond simple keyword matching and tests for a genuine understanding of both the code's semantics and the description's intent.
 
 The benchmark's framework is flexible, allowing for the creation of evaluation contexts of arbitrary length.
 While we conduct experiments with contexts up to 16,000 tokens and observe similar trends, our primary evaluation focuses on a context size of 1024 tokens.
@@ -38,8 +38,8 @@ In our setting, RepoQA serves as a measure of the model's ability not only to de
 \subsection{SWE-bench}
 We have chosen to use the \textit{SWE-bench}~\cite{jimenez2023swe} dataset for our main set of experiments, as it is the most popular benchmark for evaluating the performance of software engineering agents on real-world tasks.
 Thus, we can compare our results with the state-of-the-art methods.
-SWE-bencv is an auto-collected dataset and has no correct answers, but rather is a verifiable dataset where it is only possible to verify the final fix of an issue.
-The benchmark contains approximately 3000 tasks sourced from real GitHub issues and pull requests from 12 popular Python repositories (e.g., django, matplotlib).
+SWE-bench is an auto-collected dataset and has no correct answers, but rather is a verifiable dataset where it is only possible to verify the final fix of an issue.
+The benchmark contains approximately 3,000 tasks sourced from real GitHub issues and pull requests from 12 popular Python repositories (e.g., Django, Matplotlib).
 Each task instance is defined by a "fail-to-pass" scenario: a test suite that fails on the repository state before a fix is applied and passes after.
 The agent's goal is to generate a patch that resolves the issue, making the test suite pass.
 This setup provides a realistic measure of an agent's problem-solving capabilities.
@@ -55,14 +55,14 @@ Our metric of interest is the percentage of solved instances, which is reported 
 High-quality training data is crucial for fine-tuning capable software engineering agents.
 Since there are no ground-truth answers in SWE-bench, we require expert demonstrations in the form of agentic trajectories (i.e., from a smarter teacher model).
 Following the approach of AgentTuning~\cite{zeng2024agenttuning}, we used a proprietary, state-of-the-art model to generate solutions, which serve as the basis for our fine-tuning dataset.
-To generate them at scale, we use the data collected in SWE-Smith~\cite{yang2025swe}.
-SWE-Smith is a pipeline designed to generate large-scale training data for software engineering tasks. It automates the process by constructing execution environments for Python codebases and synthesizing numerous task instances that intentionally break existing tests.
-The authors have collected a dataset of the tasks, which we would utilize for fine-tuning our agent.
+To generate them at scale, we use the data collected in SWE-smith~\cite{yang2025swe}.
+SWE-smith is a pipeline designed to generate large-scale training data for software engineering tasks. It automates the process by constructing execution environments for Python codebases and synthesizing numerous task instances that intentionally break existing tests.
+The authors have collected a dataset of tasks, that we will utilize for fine-tuning our agent.
 
-While SWE-Smith provides the framework for generating tasks, we use it to generate trajectories for fine-tuning our agent. 
+While SWE-smith provides the framework for generating tasks, we use it to generate trajectories for fine-tuning our agent. 
 Specifically, we use a powerful teacher model, Claude 3.7 Sonnet, to solve tasks collected by the authors.
-Claude 3.7 Sonnet is a proprietary model by Anthropic that is able to solve the tasks of SWE-Bench format with high accuracy (i.e. on SWE-Bench Verified it has >60\% resolve rate), so we can use it's trajectories as the ground truth for creating our fine-tuning dataset (following the approach of ~\textcite{zeng2024agenttuning}).
-The teacher model's interactions are recorded as trajectories. We only retain the successful trajectories, resulting in a high-quality dataset of approximately 5000 expert demonstrations (i.e. agentic trajectories).
+Claude 3.7 Sonnet is a proprietary model by Anthropic that is able to solve the tasks of the SWE-Bench format with high accuracy (i.e., on SWE-Bench Verified it has >60\% resolve rate), so we can use its trajectories as the ground truth for creating our fine-tuning dataset (following the approach of ~\textcite{zeng2024agenttuning}).
+The teacher model's interactions are recorded as trajectories. We only retain the successful trajectories, resulting in a high-quality dataset of approximately 5000 expert demonstrations (i.e., agentic trajectories).
 This filtering step is crucial to ensure that the agent learns from effective problem-solving strategies. 
 It is worth noting that there is currently no consensus in the research community on whether including unsuccessful trajectories is beneficial for training~\cite{zeng2024agenttuning, song2024agentbank}.
 
@@ -70,7 +70,7 @@ It is worth noting that there is currently no consensus in the research communit
 \paragraph{Interaction Protocol and Tools}
 It is crucial to detail the agent's interaction protocol because the choice of tools and system prompts significantly impacts the final resolve rate.
 Different scaffolding frameworks, such as SWE-Agent~\cite{yang2024swe}, offer varying levels of complexity and abstraction, which can lead to different outcomes.
-The agent interacts with the environment following a protocol and toolset defined by the SWE-Smith setup.
+The agent interacts with the environment following a protocol and toolset defined by the SWE-smith setup.
 This setup is designed to be minimal yet expressive enough to solve complex software engineering tasks.
 The agent is provided with a system prompt that describes the available tools and how to use them. The exact prompt is detailed in Appendix~\ref{app:swe-smith-prompt}.
 The agent generates tool calls as plain text, rather than using a model's specific function-calling format.
@@ -87,14 +87,14 @@ The \texttt{str\_replace\_editor} is a critical tool that supports viewing, crea
 \section{Quality Metrics}
 \label{sec:quality_metrics}
 We employ a variety of metrics to evaluate our approach, tailored to the specific demands of each task.
-The evaluation framework distinguishes between task-level metrics for end-to-end performance, token-level metrics for generation quality, and efficiency metrics to evaluate the performance of the system in the context of \hyperref[rq:1]{RQ1}.
+The evaluation framework distinguishes between task-level metrics for end-to-end performance, token-level metrics for generation quality, and efficiency metrics to evaluate the system's performance in the context of \hyperref[rq:1]{RQ1}.
 While each dataset has a primary metric suited to its objective, we also report the BLEU score~\cite{papineni2002bleu} score across all evaluations to provide a consistent basis for comparison (see Figure~\ref{fig:bleu_all_datasets}).
 
 \subsection{Token-Level Metrics}
 For reconstruction and question-answering tasks, we rely on several standard token-level metrics.
 Token-wise accuracy measures the fraction of generated tokens that match the ground-truth reference (can be in a teacher-forcing regime or autoregressive mode).
 Exact Match (EM) is a stricter metric that scores a prediction as correct only if it is an exact character-for-character match with the reference answer.
-EM is particularly well-suited for shorter answers and is commonly used in datasets like SQuAD~\cite{rajpurkar2016squad}, and we follow in our evaluation as well.
+EM is particularly well-suited for shorter answers and is commonly used in datasets like SQuAD~\cite{rajpurkar2016squad}, which we also follow in our evaluation.
 The token-level F1 score computes the harmonic mean of precision and recall between the bags of tokens in the prediction and the reference, providing a measure of lexical overlap.
 Finally, we use the Bilingual Evaluation Understudy (BLEU) score~\cite{papineni2002bleu} to measure the similarity between generated and reference text.
 Specifically, we report BLEU-1, which considers only unigram overlap.
@@ -109,9 +109,9 @@ The resolve rate (percentage of successfully resolved issues) serves as the key 
 
 \subsection{Efficiency Metrics}
 To evaluate the efficiency of the system in the context of \hyperref[rq:1]{RQ1}, two metrics are considered: generation time and the number of steps in the trajectory.
-Generation time measures the duration required for the model to produce an output (i.e. a tool call / action) and is reported in seconds.
-The number of steps in the trajectory represents the total amount of tool calls (i.e. actions) in a trajectory.
+Generation time measures the duration required for the model to produce an output (i.e., a tool call/action) and is reported in seconds.
+The number of steps in the trajectory represents the total amount of tool calls (i.e., actions) in a trajectory.
 In standard configurations, a hard limit of 75 steps is typically imposed.
-However, for these specific measurements, this restriction is removed to observe the full trajectory length achievable by the models.
+However, for these specific measurements, this restriction is removed to observe the full trajectory length that the models can achieve.
 The only remaining constraint is the context window limit of 32,768 tokens.
-These metrics are used to approximate the efficiency of the agent.
+These metrics are used to approximate the agent's efficiency.

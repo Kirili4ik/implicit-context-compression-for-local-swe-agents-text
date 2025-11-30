@@ -59,7 +59,7 @@ coverBCOR=11mm% binding correction for the cover - adapt accordingly
 
 
 \examiner{Prof.\@ Dr.\@ Gjergji Kasneci}% `Themensteller`
-\supervisor{Felix Steinbauer\\Igor Slinko}% `Betreuer`
+\supervisor{Felix Steinbauer\\Igor Slinko (JetBrains Research)}% `Betreuer`
 
 
 \begin{document}
@@ -69,12 +69,12 @@ coverBCOR=11mm% binding correction for the cover - adapt accordingly
 
 
 \section*{Abstract}
-This thesis investigates implicit context condensation for large language model based software engineering agents.
+This thesis investigates implicit context condensation for large language model-based software engineering agents.
 Instead of relying on extended context windows or explicit methods, it compresses long observations into a fixed set of embeddings using an in-context LLM-based encoder attached to a frozen LLM decoder.
 The compressor is pretrained on general text with a mix of autoencoding and language modeling objectives and then fine-tuned on question answering, code reconstruction, or agentic trajectories derived from SWE-bench style issues.
-Experiments on SQuAD and RepoQA show that the condensed representations can match or even surpass the uncompressed baselines on single-shot tasks, preserving enough detail to reconstruct natural language and source code.
+Experiments on SQuAD and RepoQA demonstrate that the condensed representations can match or even surpass the uncompressed baselines on single-shot tasks, preserving enough detail to reconstruct natural language and source code.
 In the agentic setting, context condensation enables trajectories with more steps within a fixed context budget and reduces per-step inference time, demonstrating clear efficiency gains.
-However, when the agent is applied to the end-to-end setting of SWE-bench Verified, these benefits do not lead to the higher resolve rate and underperform an untrained baseline.
+However, when the agent is applied to the end-to-end setting of SWE-bench Verified, these benefits do not lead to higher resolve rates and underperform an untrained baseline.
 % Negative results for training-free and low-capacity projection baselines, together with evidence of a bottleneck in parameter-efficient fine-tuning, indicate that effective context condensation for autonomous software engineering will require higher-fidelity compression and stronger optimization than explored here.
 
 \section*{Zusammenfassung}
