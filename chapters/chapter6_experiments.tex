@@ -68,7 +68,7 @@ The results establish that replacing discrete tokens with untrained condensed mi
         Soft embedded \text{Regenerate-LLM}, avg ×2          & 0.07 & 0.16 \\
         \bottomrule
     \end{tabular}
-    \caption{Performance of training-free context condensation on SQuAD. This table compares the baseline (hard tokens) against three condensation methods: hard embedding averaging, soft embedding with online generation, and soft embedding with offline regeneration (Regenerate-LLM) averaging.}
+    \caption{Performance of training-free context condensation on SQuAD. This table compares the baseline (hard tokens) against three condensation methods: hard embedding averaging, soft embedding with online generation, and soft embedding with offline regeneration averaging.}
     \label{tab:avg_variants}
 \end{table}
 
@@ -215,7 +215,7 @@ Reconstructed:
 
 In line with internal feedback, these AE findings suggest that the current pretrain/fine-tuning mixes undertrain the model on code: AE BLEU for code should approach text-level (near 1.0) to avoid even small inaccuracies (e.g., link/variable name substitutions).
 
-\section{ICAE Fine-Tuning and Results on Question Answering}
+\section{ICAE Fine-Tuning and Results on Question Answering (SQuAD)}
 
 We conduct fine-tuning experiments on the Stanford Question Answering Dataset (SQuAD) \cite{rajpurkar2016squad}.
 The rationale for choosing SQuAD over the PWC dataset used in the original ICAE work is detailed in Chapter~\ref{cha:evaluation}.
@@ -282,7 +282,7 @@ The strong performance on SQuAD motivates our subsequent investigation of the IC
 
 
 
-\section{ICAE Fine-Tuning and Results on Code Reconstruction}
+\section{ICAE Fine-Tuning and Results on Code Reconstruction (RepoQA)}
 \label{sec:eval_repoqa}
 
 To assess the fidelity of our compression mechanism on structured, technical data, we evaluated the ICAE model on the RepoQA benchmark~\cite{liu2024repoqa}.
