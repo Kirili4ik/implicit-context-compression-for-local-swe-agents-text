@@ -19,7 +19,7 @@ The authors also analyze when and why compression degrades, e.g., over-4$\times$
 
 With 4$\times$ compression, the pretrained ICAE achieves a score of $\approx$ 99\% on autoencoding, as measured by the Bilingual Evaluation Understudy (BLEU) metric~\parencite{papineni2002bleu}, across Llama-2~\parencite{touvron2023llama} models and small increases in perplexity at continuation time (e.g., PPL 9.01$\rightarrow$9.50), indicating near-lossless retention at 4$\times$ on natural text.
 When applied to instruction-following tasks, ICAE memory tokens are competitive with or stronger than baselines that read full $\sim$512-token contexts, e.g., Llama-7B (ICAE) vs Alpaca: 73.1\% win+tie.
-Moreover, this compression leads to significant latency improvements, with measured end-to-end speedups reaching 2.2–3.6$\times$ in cacheable regimes where memory slots are pre-computed.
+Moreover, this compression leads to significant speed improvements, with measured end-to-end speedups reaching 2.2–3.6$\times$ in cacheable regimes where memory slots are pre-computed.
 
 ICAE is the most direct prior for our implicit compression: we also encode contexts into continuous embeddings and condition the model on the learned memory tokens, but extend the setting to newer backbones and coding/agentic workloads (SWE-style trajectories).
 We also emphasize agent-trajectory fine-tuning over SWE-bench-like tasks, which \textcite{ge2023context} did not target; for later chapters, this section supplies the technical background (slots, compression ratios, fidelity–throughput trade-offs) we build on.
@@ -33,7 +33,7 @@ By leveraging bidirectional context, it can more accurately assess token importa
 The method demonstrates impressive performance, achieving substantial compression with minimal fidelity loss.
 On the in-domain MeetingBank benchmark, \textcite{pan2024llmlingua} achieve 3.1$\times$ compression (from 3,003 to 970 tokens) while scoring 86.9\% EM on a QA task, nearly matching the original prompt's 87.8\%.
 For reasoning, they achieve 79.1\% EM on GSM8K~\parencite{cobbe2021training} with 5$\times$ compression, on par with the full uncompressed baseline.
-This efficiency translates to significant end-to-end latency reductions of 1.6$\times$ to 2.9$\times$.
+This efficiency translates to significant end-to-end speedups of 1.6$\times$ to 2.9$\times$.
 Notably, when paired with Mistral-7B, the compressed prompt outperforms the original on QA (76.2\% vs. 67.0\%), suggesting it can help models that are less adept at handling long contexts.
 
 The approach of \textcite{pan2024llmlingua}, however, is fundamentally extractive and therefore lossy, which contrasts with the implicit, continuous compression (which theoretically can be lossless).

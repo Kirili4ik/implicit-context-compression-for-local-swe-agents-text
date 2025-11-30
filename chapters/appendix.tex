@@ -7,12 +7,14 @@
 
 \section{On the Use of AI}
 
-I \textbf{have} used generative AI to help me write the text for this work.\\
-I \textbf{have} used generative AI to help me write the code for the experiments.\\
+I \textbf{have} used generative AI to help me write the text for this work. \cite{comanici2025gemini}\\
+I \textbf{have} used generative AIto help me write the code for the experiments. \cite{anthropic2025claude}\\
 I \textbf{have not} used AI in order to create new experiments, nor for any goals, research questions, hypotheses and other types of research-related work.
 
 \section{SWE-smith First User Message}
 \label{app:swe-smith-first-user-message}
+
+This is the initial user message template that provides the agent with the repository context and task instructions for solving the issue.
 
 \begin{tcolorbox}[title={SWE-smith First User Message},
     colback=white, colframe=black, fonttitle=\bfseries,
@@ -120,8 +122,10 @@ The following prompt is from the SWE-smith paper \cite{yang2025swe}.
   \end{tcolorbox}
 
 \newpage
-\section{ICAE In-Context Ability Proof-of-Concept}
+\section{ICAE In-Context Ability Proof-of-Concept Example}
 \label{app:icae-proof}
+
+This example demonstrates a hand-crafted scenario, closely related to SWE-bench, designed to test the model's ability to comprehend and utilize decompressed data from its memory. The highlighted part shows the model successfully identifying a hidden requirements file by using the context provided in its compressed memory.
 
 \begin{tcolorbox}[title={ICAE Proof-of-Concept Example},
     colback=white, colframe=black, fonttitle=\bfseries,
@@ -177,11 +181,9 @@ $ str_replace_editor --command view --path /mnt/shared-fs/gelvan/swe-agent-disti
 \end{tcolorbox}
 *\texttt{<system\_prompt>} is from Appendix~\ref{app:swe-smith-prompt}.
 
-This example demonstrates a hand-crafted scenario, closely related to SWE-bench, designed to test the model's ability to comprehend and utilize decompressed data from its memory. The highlighted part shows the model successfully identifying a hidden requirements file by using the context provided in its compressed memory.
+This proof-of-concept example demonstrates that the ICAE framework can successfully retrieve and utilize information from compressed memory in principle. However, it is important to note that this success in a controlled, hand-crafted scenario does not translate to robust performance in practice. As shown in Table~\ref{tab:qwen_icae_variants_absolute}, the \texttt{ICAE-PT+FT} model resolved only 7.8 $\pm$ 2.59 issues on SWE-bench Verified, compared to the baseline's 19.4 $\pm$ 6.5 issues, indicating that while the model can access compressed information in isolated cases, it struggles to maintain task performance in the full complexity of multi-turn agentic interactions.
 
-This proof-of-concept demonstrates that the ICAE framework can successfully retrieve and utilize information from compressed memory in principle. However, it is important to note that this success in a controlled, hand-crafted scenario does not translate to robust performance in practice. As shown in Table~\ref{tab:qwen_icae_variants_absolute}, the \texttt{ICAE-PT+FT} model resolved only 7.8 $\pm$ 2.59 issues on SWE-bench Verified, compared to the baseline's 19.4 $\pm$ 6.5 issues, indicating that while the model can access compressed information in isolated cases, it struggles to maintain task performance in the full complexity of multi-turn agentic interactions.
-
-
+\newpage
 \section{Ablation Experiment: Disabling Thinking}
 \label{sec:disabling_thinking}
 
@@ -226,6 +228,7 @@ Due to resource constraints, we did not conduct multiple runs to calculate stand
 Consequently, all other experiments reported in this work, including the main results in Table~\ref{tab:qwen_icae_variants_absolute}, were conducted using the official "Clean" prompting methodology to ensure the validity and reproducibility of our findings.
 This ablation study may be of interest to future work involving the Qwen3 model family.
 
+\newpage
 \section{Training Details and Hyperparameters}
 \label{app:training_details}
 
@@ -287,6 +290,7 @@ This ablation study may be of interest to future work involving the Qwen3 model 
     \label{tab:finetune_config}
 \end{table}
 
+\newpage
 \subsection{SWE-bench Inference Configuration}
 
 \begin{table}[h]
@@ -309,6 +313,4 @@ This ablation study may be of interest to future work involving the Qwen3 model 
 \subsection{Profiling Setup}
 
 All experiments were conducted on a single server equipped with an Intel processor and 1× NVIDIA H200 GPU. We utilized only one GPU for all training and evaluation tasks to ensure consistency across experiments.
-
-\subsection{Reproducibility Resources}
-To ensure full reproducibility, we provide our complete implementation\footnote{\url{https://github.com/JetBrains-Research/icae}}, full Weights \& Biases experiment logs for pretraining\footnote{\url{https://wandb.ai/kirili4ik/icae-pretraining}} and fine-tuning\footnote{\url{https://wandb.ai/kirili4ik/icae-swebench-finetune}}, and model checkpoints\footnote{\url{https://huggingface.co/Kirili4ik/icae}}.
+We thank JetBrains Research\footnote{\url{https://www.jetbrains.com/research/}} for providing the computational resources necessary for this work.

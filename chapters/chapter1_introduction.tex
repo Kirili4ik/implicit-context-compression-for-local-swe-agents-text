@@ -41,7 +41,7 @@ This direction suggests that the future of long-context modeling may lie in hybr
 A more direct approach is to leverage newer models that are architecturally designed for very long contexts, often extending to one or two million tokens.
 Many of these models utilize advancements like Rotary Position Embeddings (RoPE) \cite{su2024roformer} to better handle long-range dependencies.
 While this seems like a straightforward solution, it comes with its own set of drawbacks.
-Processing extremely long contexts, even with linear-scaling attention mechanisms, is computationally expensive and memory-intensive, leading to high inference latency and cost.
+Processing extremely long contexts, even with linear-scaling attention mechanisms, is computationally expensive and memory-intensive, leading to high inference time and cost.
 Furthermore, models with large context windows can suffer from the "lost in the middle" problem, where they struggle to effectively utilize information from the middle of a long input sequence \cite{liu2024lost}.
 
 \paragraph{Explicit Compression.}
@@ -57,18 +57,21 @@ This paradigm moves beyond explicit, token-based techniques by utilizing the inh
 Instead of relying on discrete representations (tokens), implicit compression focuses on mapping information into a compact set of continuous representations (embeddings).
 The core idea is that a text can be represented in different lengths and densities within an LLM while conveying the same essential information \cite{chevalier2023adapting}.
 The goal is to produce task-adapted representations that a model uses during inference, rather than the raw input itself.
-This approach promises several advantages: it maintains a tight interface with the model, can reduce latency and memory, and avoids external retrieval steps.
-Figure \ref{fig:example1} illustrates the core concept.
+This approach promises several advantages: it maintains a tight interface with the model, can improve generation speed, and avoids external retrieval steps.
+An idea of applying this approach to the agentic setting is illustrated in Figure \ref{fig:example1} below.
 
 \begin{figure}[hbt]
   \centering
   \includegraphics[width=\textwidth]{graphs/example1.pdf}
-  \caption{Comparison between a base agent and our agent approach for handling large observations exceeding the LLM's context length. The base agent fails when processing long observations directly, while our agent successfully compresses the observation into a fixed set of embeddings before LLM processing, enabling continued task execution.}
+  \caption{
+    Comparison between a base agent and ours approach for handling large observations exceeding the LLM's context length.
+    The base agent fails when processing long observations directly, while our agent successfully compresses the observation into a fixed set of embeddings before LLM processing, enabling continued task execution.
+  }
   \label{fig:example1}
 \end{figure}
 
 The primary goal of context condensation is to leverage this potential density to enable LLM agents to execute tasks involving long chains of reasoning (Chain-of-Thought, CoT) and more steps by condensing the environment observations.
-Achieving this condensation improves the model's capability to handle long contexts while offering tangible advantages in improved latency and reduced GPU memory cost during inference.
+Achieving this condensation improves the model's capability to handle long contexts while offering tangible advantages in improved generation speed during inference.
 
 \subsection{Research Questions}
 The exploration of implicit context condensation as a solution to the long-context problem leads to the central research questions of this thesis.

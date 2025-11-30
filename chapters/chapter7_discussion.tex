@@ -1,30 +1,63 @@
 \chapter{Discussion}
 \label{cha:discussion}
 
-This chapter provides an in-depth analysis of the experimental results and explores potential explanations for the observed performance patterns.
-We examine the factors that may contribute to the degradation in agentic task performance, despite strong results on static benchmarks, directly addressing the limitations of transferability identified in \hyperref[rq:2]{RQ2}.
-The discussion is structured around several hypotheses that collectively shed light on the challenges of applying compression methods to multi-turn, interactive software engineering tasks.
+This chapter provides an in-depth analysis of the experimental results presented in Chapter~\ref{cha:experiments} and explores potential explanations for the observed performance patterns.
+We examine the factors that may contribute to the degradation in agentic task performance when using compression, despite strong results on other benchmarks.
+The discussion is structured around several hypotheses that collectively might shed some light on the challenges of applying compression methods to multi-turn, interactive SWE tasks.
 
-\section{Analysis of Performance Degradation}
+\section{Reconstruction Fidelity and Error Accumulation}
 
-While our compression approach demonstrates promising results on static benchmarks such as SQuAD and RepoQA, the performance on the primary agentic task (SWE-bench Verified) reveals significant challenges.
-This section explores potential reasons for this degradation.
+As established in Section~\ref{sec:icae_pretraining_results}, the autoencoding pretraining phase does not achieve perfect reconstruction, with BLEU scores peaking at 0.964 and not approaching the near-lossless threshold of $\ge 0.99$.
+While this level of fidelity may be sufficient for general text, it poses a significant risk in the context of software engineering, where precision is critical.
 
-\paragraph{Potential Reasons for Performance Degradation.}
-We hypothesize several factors may contribute to the degradation in task resolution performance:
-\begin{enumerate}
-    \item \textbf{Loss of Agentic Capabilities}: The pretraining stage on a general text corpus may weaken the planning or tool-calling capabilities of the base model that are essential for agentic tasks.
-    While fine-tuning on agentic data recovers some task-specific abilities, such as code generation (as evidenced by the strong performance on RepoQA in Section~\ref{sec:eval_repoqa}), it may not be sufficient to restore the full spectrum of agentic competence.
+In multi-step agentic trajectories, even minor inaccuracies introduced during the compression of an observation can have cascading effects.
+An illustrative example is provided in Section~\ref{ex:ae-readme-recon}, where a URL was incorrectly reconstructed.
+In a real-world scenario, such an error could lead to a failed network request, sending the agent down a non-productive path and consuming valuable steps in its trajectory.
+The same might happen when writing code: a missing or incorrect import statement could lead to a runtime error, causing the agent to waste time and resources on a failed attempt.
+Over a sequence of dozens of interactions, the accumulation of such small errors can lead to a significant deviation from the optimal path, often resulting in task failure.
+The dynamic nature of agentic tasks means that the agent must rely on the outputs of its previous actions, and if the compressed representation of those outputs is flawed, the foundation for subsequent decisions becomes unstable.
 
-    \item \textbf{Imperfect Reconstruction Fidelity}: As discussed in Section~\ref{sec:icae_pretraining_results}, the autoencoding pretraining does not achieve perfect reconstruction (i.e., BLEU scores do not approach $\ge 0.99$).
-    In software engineering tasks, even minor inaccuracies in compressed observations can accumulate over a multi-step trajectory and lead to critical failures (see the illustrative example in Section~\ref{ex:ae-readme-recon}).
+\section{Limitations of LoRA for Fine-Tuning Agentic Capabilities}
 
-    \item \textbf{Unsuitability of LoRA-FT for Agentic Tasks}: The use of parameter-efficient fine-tuning via LoRA may be insufficient for adapting a model to complex agentic workflows.
-    Our results show that the \texttt{Baseline+LoRA-FT} model also performs poorly compared to both the fully fine-tuned and simple baselines, suggesting that LoRA may not be an effective strategy for this specific task, regardless of compression.
-    Notably, we have found no research done using LoRA for agentic trajectories, only full-parameter fine-tuning (which performs the best in our experiments).
+One of the key findings of our experiments is the poor performance of LoRA-based fine-tuning for agentic tasks.
+As shown in Table~\ref{tab:qwen_icae_variants_absolute}, the \texttt{Baseline+FT} model, which uses parameter-efficient fine-tuning without any compression, performs worse than the un-finetuned \texttt{Baseline} model (10 vs. 19.4 resolved issues).
+This suggests that the performance degradation seen in our ICAE models may not be solely a consequence of compression, but also a result of the limitations of LoRA in this specific context.
+We hypothesize two primary reasons for this phenomenon.
 
-    \item \textbf{The Challenge of Multi-Turn Interaction}: In single-shot NLP tasks like SQuAD or RepoQA, the context is static and complete.
-    In contrast, an agentic task is dynamic: the action at step \(k\) influences the observation at step \(k+1\).
-    It is impossible to determine at the moment of compression which pieces of information from an observation will become critical at a future step \(k+i\).
-    The compression process, optimized for immediate reconstruction, may discard seemingly unimportant details that are essential for long-term planning and task success.
-\end{enumerate}
+First, it is possible that LoRA, by virtue of its design, is insufficient to capture the complex reasoning and planning capabilities required for multi-step agentic tasks.
+While full-parameter fine-tuning demonstrates strong performance (86 resolved issues), LoRA may not provide enough expressive power to modify the model's behavior in a meaningful way for these tasks.
+It is noteworthy that there is a clear absence of literature on the application of LoRA to agentic trajectories; the common methodology appears to be full-parameter fine-tuning.
+We speculate that other researchers may have attempted to use LoRA for agentic fine-tuning, encountered similarly discouraging results, and consequently chosen not to publish their findings.
+
+Second, the fine-tuning process may be biased towards stylistic imitation or format learning rather than genuine task learning.
+Our agentic trajectory dataset was generated using a "teacher" model from a different family (Claude 3.7 Sonnet) than the "student" model being trained (Qwen3-8B).
+It is plausible that the LoRA fine-tuning process primarily trains the Qwen model to replicate the token distribution and stylistic patterns of the Claude model, rather than learning the underlying problem-solving logic.
+The model may become proficient at predicting the next tool call in a way that "looks like" the teacher's output (as suggested by the high BLEU scores in Figure~\ref{fig:bleu_swe-bench}), but fails to generalize this to effective, autonomous task execution in a live environment.
+This limitation might potentially be addressed in future work through reinforcement learning (RL) approaches that optimize directly for task success on the benchmark itself, using reward signals rather than supervised learning on pre-collected trajectories.
+
+
+\section{Information Prioritization in Multi-Turn Interactions}
+
+Agentic software engineering tasks are inherently dynamic and unpredictable.
+The information that is critical for success at step $k+i$ may seem a minor detail in the observation at step $k$.
+This presents a fundamental challenge for any compression method that operates on a per-step basis.
+
+In single-shot NLP tasks such as SQuAD or RepoQA, the context is static and complete.
+The model is given all the necessary information at once and can learn to identify the salient details required to produce the correct output.
+In an agentic setting, however, the model must compress an observation without full knowledge of its future relevance.
+The compression process, which is optimized for immediate reconstruction during pretraining, may inadvertently discard details that appear unimportant at the moment of compression but are essential for long-term planning.
+
+Furthermore, our training methodology relies on single-step transitions.
+The loss is calculated based on the model's ability to predict the next action, and gradients flow back through only one compression step.
+We are, in effect, training the model on single-step prediction but evaluating it on multi-step task resolution.
+This mismatch between the training objective and the evaluation task may explain why the model fails to learn how to prioritize information with long-term consequences.
+It might be learning to compress for immediate reconstruction, but not for future utility.
+
+A related challenge is the potential degradation of the base model's inherent agentic capabilities during pretraining.
+The pretraining of the ICAE model is performed on a general text corpus with the objectives of autoencoding and language modeling.
+While this teaches the encoder to create effective compressed representations, it may simultaneously degrade the base model's inherent agentic capabilities, such as planning, reasoning, and tool-use.
+Fine-tuning on agentic data is intended to recover these capabilities.
+Our results on the RepoQA benchmark (Section~\ref{sec:eval_repoqa}) show that fine-tuning does indeed recover task-specific abilities like code generation.
+However, this specialized fine-tuning may not be sufficient to restore the full spectrum of general agentic competence that is required for complex, multi-step tasks.
+It is plausible that restoring general agentic capabilities through fine-tuning is inherently more difficult than restoring reconstruction abilities, as might be seen in other datasets, and may even be impossible to fully achieve once degraded.
+This could explain why the un-finetuned \texttt{Baseline} model, despite its lack of specific training, outperforms the more specialized, fine-tuned models in the complex agentic environment of SWE-bench.

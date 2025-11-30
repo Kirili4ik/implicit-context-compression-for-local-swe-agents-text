@@ -17,7 +17,7 @@ The work also assessed training-free and lightweight learned compression attempt
 	
 	\item \textbf{Quantification of performance trade-offs.}
 	The empirical results establish a trade-off.
-	ICAE improves question-answering accuracy (Table~\ref{tab:icae_squad}) and allows for longer agent trajectories (Figure~\ref{fig:boxplot-stepcount}) with a modest latency reduction (Table~\ref{tab:qwen_icae_variants_absolute}).
+	ICAE improves question-answering accuracy (Table~\ref{tab:icae_squad}) and allows for longer agent trajectories (Figure~\ref{fig:boxplot-stepcount}) with a modest generational time reduction (Table~\ref{tab:qwen_icae_variants_absolute}).
 	However, under the tested configuration, it degrades end-to-end task resolution on SWE-bench Verified (Table~\ref{tab:qwen_icae_variants_absolute}).
 	This suggests that for other researchers, the value of this compression approach is task-dependent and highlights a critical challenge: maintaining high-fidelity information in compressed state representations for multi-step tasks.
 	
@@ -34,7 +34,7 @@ The work also assessed training-free and lightweight learned compression attempt
 \section{Synthesis of Findings}
 
 \textbf{RQ1 --- Efficiency: Longer trajectories and generation speed.}
-Implicit context condensation increased the number of agent steps before context overflow (113 vs.\ 81 on average, a 40\% increase) and reduced per-call latency by approximately 10\% (1.12 seconds vs.\ 1.23 seconds for the baseline).
+Implicit context condensation increased the number of agent steps before context overflow (113 vs.\ 81 on average, a 40\% increase) and reduced per-call generation time by approximately 10\% (1.12 seconds vs.\ 1.23 seconds for the baseline).
 The compressed agent's total time comprises 0.31 seconds for observation compression and 0.81 seconds for tool-call generation.
 Thus, the method does allow completion of longer trajectories under a fixed context window, and it improves efficiency.
 However, these benefits did not raise the solve rate on SWE-bench Verified in this setting (\Cref{tab:qwen_icae_variants_absolute}; \Cref{fig:boxplot-stepcount}).

@@ -26,7 +26,7 @@ The chapter concludes with an evaluation on the SWE-bench Verified dataset withi
         \caption{Our modification variant (soft embedding, online)}
         \label{fig:ser2}
     \end{subfigure}
-    \caption{Visualization of the "without training" approach.}
+    \caption{A comparison of token processing pathways. The left image illustrates the standard approach where discrete tokens are converted to embeddings. The right image shows our modified method, which injects continuous soft embeddings directly into the model, bypassing the usual tokenization and embedding lookup stages.}
     \label{fig:ser_combined}
 \end{figure}
 
@@ -68,7 +68,7 @@ The results establish that replacing discrete tokens with untrained condensed mi
         Soft embedded \text{Regenerate-LLM}, avg ×2          & 0.07 & 0.16 \\
         \bottomrule
     \end{tabular}
-    \caption{Comparison of different training-free context condensation methods}
+    \caption{Performance of training-free context condensation on SQuAD. This table compares the baseline (hard tokens) against three condensation methods: hard embedding averaging, soft embedding with online generation, and soft embedding with offline regeneration (Regenerate-LLM) averaging.}
     \label{tab:avg_variants}
 \end{table}
 
@@ -76,7 +76,26 @@ The results establish that replacing discrete tokens with untrained condensed mi
 
 We as well investigate whether a trained, low-capacity projection module could learn to compress adjacent embedding vectors while preserving task-relevant information.
 We explore several architectural variants to map a pair of concatenated hidden vectors $[e_{2t-1}; e_{2t}]$ from $\mathbb{R}^{2d}$ to a single vector in $\mathbb{R}^{d}$.
-These variants included a simple \textbf{linear projector}, a shallow non-linear \textbf{MLP} (one to two layers with GELU activation), and a full \textbf{BERT encoder} \cite{devlin2019bert} to provide a higher-capacity compression mechanism.
+These variants included a simple linear projector, a shallow non-linear MLP (one to two layers with GELU activation), and a full BERT encoder \cite{devlin2019bert} to provide a higher-capacity compression mechanism.
+
+
+
+\begin{figure}[hbt]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{graphs/squad_val_loss.pdf}
+        \caption{Loss on validation set}
+        \label{fig:squad_val_loss}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{graphs/squad_f1_score.pdf}
+        \caption{F1 score on validation set}
+        \label{fig:squad_f1_score}
+    \end{subfigure}
+    \caption{SQuAD validation metrics for projection-based compression. The left plot shows the validation loss, which flattens immediately despite the training loss decreasing. The right plot displays F1 scores that remain far below the baseline. We explored numerous variants including different learning rates, BERT encoder, varying compression ratios, and extended training durations. While all configurations successfully overfit the training data, none generalized to the validation set, demonstrating that simple projection methods fail to preserve task-relevant information.}
+    \label{fig:squad_metrics}
+\end{figure}
 
 All experiments used the SQuAD context-embedding setting, with the base Qwen3-8B model frozen.
 Only the parameters of the projection module were trained via token-level cross-entropy on the answer generation task.
@@ -92,22 +111,6 @@ None of these changes meaningfully altered the outcome; the models were consiste
 The failure of these methods suggests two potential underlying issues.
 First, the embedding manifold may possess a non-smooth or complex geometric structure that is disrupted by simple linear or shallow non-linear projections, leading to irreversible information loss that the frozen decoder cannot overcome.
 Second, even the higher-capacity BERT encoder may lack the expressive power to learn a sufficiently meaning-preserving compression when paired with a much larger, frozen decoder.
-\begin{figure}[hbt]
-    \centering
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{graphs/squad_val_loss.pdf}
-        \caption{}
-        \label{fig:squad_val_loss}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{graphs/squad_f1_score.pdf}
-        \caption{}
-        \label{fig:squad_f1_score}
-    \end{subfigure}
-    \caption{SQuAD validation metrics for projection-based compression.}
-    \label{fig:squad_metrics}
-\end{figure}
 
 \section{ICAE Pretraining and Results on General Text Reconstruction}
 \label{sec:icae_pretraining_results}
@@ -141,7 +144,8 @@ In our experiments, it only appears if we apply the Position ID manipulation.
       \caption{}
       \label{fig:bleu_final}
   \end{subfigure}
-  \caption{Pre-training evaluation metrics across different model configurations.}
+  \caption{Pre-training evaluation metrics across different model configurations. The left plot displays the validation loss, showing a characteristic sharp drop attributed to the positional encoding adjustments for memory tokens. The right plot presents the BLEU scores for text reconstruction, which improve as training progresses. These metrics together illustrate the effectiveness of the pre-training phase.
+  }
   \label{fig:pretraining-metrics-combined}
 \end{figure}
 
@@ -153,7 +157,7 @@ In our experiments, it only appears if we apply the Position ID manipulation.
         \toprule
         \textbf{Run} & \textbf{Checkpoint (\# steps)} & \textbf{Compression} & \textbf{BLEU (mean, n=100)} \\
         \midrule
-        Qwen3-8B/full (no ICAE) & 18k & $\times 1$ & 0.867 \\
+        Qwen3-8B (no ICAE) & 18k & $\times 1$ & 0.867 \\
         \hline
         \multicolumn{4}{|l|}{\hspace{1em}\textit{10M tokens subset}} \\
         \hline
@@ -168,7 +172,9 @@ In our experiments, it only appears if we apply the Position ID manipulation.
         \texttt{ICAE-PT} & 18k & $\times 4$ & 0.928 \\
         \bottomrule
     \end{tabular}
-    \caption{Autoencoding (AE) reconstruction BLEU on SQuAD contexts (100-sample evaluations only). The 1B tokens subset 12k checkpoint is the main model used for fine-tuning.}
+    \caption{Autoencoding reconstruction BLEU scores on SQuAD contexts. This table compares the reconstruction quality for models pretrained (PT) on different data subsets (10M vs. 1B tokens of SlimPajama-6B) at various checkpoints.
+    The checkpoint numbers (9k, 12k, 18k) refer to the number of training steps during pre-training. The run marked (main) is used for all the fine-tunings later. Note that here PT is done via LoRA as well.
+    }
     \label{tab:ae_bleu_squad_ours}
 \end{table}
 
@@ -243,7 +249,7 @@ Consequently, the compression ratio for ICAE variants averages approximately $1.
         \texttt{ICAE-PT+FT} (SQuAD, ours)       & ×$1.7\pm0.7$ & \textbf{73} \\
         \bottomrule
     \end{tabular}
-    \caption{F1 scores on SQuAD using Mistral-7B as the base model}
+    \caption{This table compares the performance of different models with and without compression. Mistral-7B is used as a base model for this experiments. The model names are explained in Section~\ref{sec:training-process-overview}. We also compare our Fine-Tuned model on SQuAD to the ICAE authors Fine-Tuned model on PWC \cite{ge2023context}.}
     \label{tab:icae_squad}
 \end{table}
 The results in Table~\ref{tab:icae_squad}, using Mistral-7B, show that our SQuAD-finetuned ICAE model achieves a high F1 score of 73.
@@ -261,7 +267,8 @@ This suggests that while pretraining may temporarily diminish some of the model'
 \begin{figure}[hbt]
     \centering
     \includegraphics[width=0.6\textwidth]{graphs/bleu/bleu_squad.pdf}
-    \caption{BLEU scores on SQuAD using Qwen3-8B as the base model}
+    \caption{BLEU scores on SQuAD using Qwen3-8B as the base model. 
+    BLEU is calculated between the generated and the GT answer.}
     \label{fig:bleu_squad}
 \end{figure}
 
@@ -298,9 +305,9 @@ In summary, the evaluation on RepoQA indicates that the ICAE framework is capabl
 
 \begin{figure}[hbt]
     \centering
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.43\textwidth}
         \includegraphics[width=\textwidth]{graphs/repoqa_val_loss.pdf}
-        \caption{RepoQA Validation Loss + add info about what is LLM-FT and why is it not Baseline+FT}
+        \caption{RepoQA Validation Loss}
         \label{fig:repoqa_val_loss}
     \end{subfigure}
     \hfill
@@ -309,7 +316,10 @@ In summary, the evaluation on RepoQA indicates that the ICAE framework is capabl
         \caption{BLEU scores on RepoQA}
         \label{fig:bleu_repoqa}
     \end{subfigure}
-    \caption{RepoQA evaluation metrics.}
+    \caption{RepoQA evaluation metrics using Qwen3-8B as the base model. 
+    The left graph shows the validation loss, which decreases steadily, indicating successful learning, but not even close to an uncompressed LoRA-FT (LLM-FT here refers to the no-compression \texttt{Baseline+FT}).
+    The right graph displays BLEU scores for code reconstruction, where the LoRA fine-tuned baseline excels as well.
+    }
     \label{fig:repoqa_metrics}
 \end{figure}
 
@@ -363,7 +373,13 @@ For more details on how we trained the model variants, see Figure~\ref{fig:train
         —                         & ICAE (LoRA-PT \& LoRA-FT)      & Qwen (LoRA-FT)   & 10          & \underline{1.13}              \\
         \hline
     \end{tabular}
-    \caption{Performance comparison of different model configurations on SWE-bench Verified. \texttt{Baseline} is a Qwen3-8B model wihtout any fine-tuning.}
+    \caption{Performance on SWE-bench Verified.
+    This table compares different model configurations on resolve rate and inference time.
+    "Qwen" refers to the Qwen3-8B model without any fine-tuning.
+    "del long/all obs-s" stands for deleting long (>256 tokens) or all observations during the inference process -- these are the naive baselines.
+    PT stands for pretrained and FT stands for fine-tuned.
+    The fully fine-tuned Qwen model achieves the highest number of resolved issues, setting the upper bound for performance.
+    While ICAE compression reduces inference time, it significantly lowers the task resolution rate compared to the uncompressed baseline.}
     \label{tab:qwen_icae_variants_absolute}
   \end{table}
 
@@ -373,8 +389,8 @@ As shown in Table~\ref{tab:qwen_icae_variants_absolute}, both methods result in 
 While they significantly reduce generation time by shortening the context, their failure highlights that observations are critical for task success, motivating the need for more sophisticated context management techniques like compression.
 
 Next, we evaluate three uncompressed baseline models to set performance targets.
-The fully fine-tuned Qwen3-8B model ("Baseline+Full-FT") achieves the highest performance, resolving 86 issues and setting the upper bound for this architecture.
-The LoRA fine-tuned variant ("Baseline+LoRA-FT") provides a more parameter-efficient alternative, resolving 10 issues.
+The fully fine-tuned Qwen3-8B model achieves the highest performance, resolving 86 issues and setting the upper bound for this architecture.
+The LoRA fine-tuned variant ("Baseline+FT") provides a more parameter-efficient alternative, resolving 10 issues.
 The base Qwen3-8B model without any fine-tuning ("\texttt{Baseline}") serves as the most direct point of comparison for our ICAE models, as they use this same frozen model as the decoder.
 It resolves 19.4 $\pm$ 6.5 issues, establishing a solid baseline for an off-the-shelf model on this task.
 The uncertainty ($\pm$ 6.5) represents the standard deviation across multiple evaluation runs (five runs for each model), quantifying the variability in the model's performance.
@@ -391,10 +407,10 @@ The uncertainty ($\pm$ 6.5) represents the standard deviation across multiple ev
   \hfill
   \begin{subfigure}[b]{0.40\textwidth}
       \includegraphics[width=\textwidth]{graphs/boxplot-main.pdf}
-      \caption{Box plot comparison of the baseline against the \texttt{ICAE-PT+FT} model}
+      \caption{Resolve rate comparison}
       \label{fig:boxplot}
   \end{subfigure}
-  \caption{BLEU scores and box plot comparison of baseline and ICAE-compressed models.}
+  \caption{BLEU scores and box plot for SWE-bench Verified. The left chart shows that the fine-tuned ICAE model achieves a higher BLEU score than the baseline. However, the right box plot reveals that the baseline model resolves significantly more issues. The comparison is based on 5 evaluations of the models. Each box represents the interquartile range of the resolve rate, and the triangle stands for the mean value.}
   \label{fig:bleu-boxplot-combined}
 \end{figure}
 
@@ -441,7 +457,7 @@ However, such experiments were beyond our computational constraints.
 \label{sec:rq1_efficiency}
 
 In this section, we address \hyperref[rq:1]{RQ1}, investigating how implicit context condensation influences the efficiency of LLM-based agents.
-We measure efficiency in terms of two key metrics: trajectory length (the number of interaction steps possible within the context window) and inference time (the latency of generating a tool call).
+We measure efficiency in terms of two key metrics: trajectory length (the number of interaction steps possible within the context window) and inference time (the time of generating a tool call).
 
 \paragraph{Trajectory Length.}
 Firstly, we analyze the number of interaction steps each agent could perform before termination. For this analysis, the default 75-turn hard cap was disabled, and termination occurred when the context window limit of 32,768 tokens was reached.
@@ -459,7 +475,7 @@ Although both models exhibit outliers representing exceptionally long trajectori
 \begin{figure}[hbt]
     \centering
     \includegraphics[width=0.65\textwidth]{graphs/boxplot-stepcount.pdf}
-    \caption{Comparison of the number of steps at termination for the baseline model and the ICAE-compressed model}
+    \caption{Comparison of trajectory lengths at termination. This box plot shows that the ICAE-based agent (right) executes a significantly higher number of steps before reaching the context limit, compared to the uncompressed baseline agent (left). The context window limit is 32,768 tokens for this experiment, while there is no limit on the maximum amount of steps the agent can take.}
     \label{fig:boxplot-stepcount}
 \end{figure}
 
@@ -468,12 +484,12 @@ Secondly, we analyze the computational efficiency of the ICAE compression approa
 The quantitative results, presented in Table~\ref{tab:qwen_icae_variants_absolute}, indicate a measurable reduction in the time required for tool-call generation.
 Specifically, the compressed agent achieved a mean generation time of 1.12 seconds per tool call, representing an approximate 10\% reduction compared to the uncompressed baseline's mean of 1.23 seconds.
 This total time for the compressed agent is composed of two distinct operational phases: the compression of the observation, which averages 0.31 seconds, and the subsequent generation of the next tool call, which averages 0.81 seconds.
-The observed reduction in total latency is a direct consequence of the decreased context size processed by the decoder following the compression step.
+The observed reduction in generation time is a direct consequence of the decreased context size processed by the decoder following the compression step.
 
 It is relevant to note that these timing measurements were obtained in an experimental setup that did not utilize KV-caching.
 The absence of KV-caching implies that the reported speedups represent conservative estimates of the potential efficiency gains, as the baseline model processes the full, growing context at every step.
 A more detailed technical discussion regarding the absence of KV-caching and its implications for real-world deployment scenarios is provided in Section~\ref{sec:limitations}.
-These findings confirm that implicit context condensation positively influences inference efficiency, reducing the latency per step in the agentic workflow.
+These findings confirm that implicit context condensation positively influences inference efficiency, reducing the time per step in the agentic workflow.
 
 
 
@@ -485,7 +501,8 @@ These findings confirm that implicit context condensation positively influences 
 \begin{figure}[hbt]
     \centering
     \includegraphics[width=1.0\textwidth]{graphs/bleu/bleu_all_datasets.pdf}
-    \caption{BLEU scores comparison across all datasets}
+    \caption{BLEU scores comparison across all datasets. This chart consistently shows that the fine-tuned ICAE model (\texttt{ICAE-PT+FT}) outperforms the uncompressed baseline in terms of BLEU score.
+    It is also easy to see that the trend is the same for all datasets.}
     \label{fig:bleu_all_datasets}
 \end{figure}
   
